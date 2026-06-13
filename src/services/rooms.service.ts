@@ -58,7 +58,6 @@ export async function getFeaturedRooms(): Promise<Room[]> {
   const q = query(
     collection(db, COLLECTIONS.ROOMS),
     where('isFeatured', '==', true),
-    orderBy('createdAt', 'desc'),
     limit(12),
   );
   const snap = await getDocs(q);
