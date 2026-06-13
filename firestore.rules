@@ -1,0 +1,118 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAuth() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuth() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    function isOwner(uid) {
+      return isAuth() && request.auth.uid == uid;
+    }
+
+    function isNotBlocked() {
+      return isAuth() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isBlocked != true;
+    }
+
+    // ── Users ────────────────────────────────────────────────────────────────
+    match /users/{uid} {
+      allow read: if isOwner(uid) || isAdmin();
+      allow create: if isOwner(uid);
+      allow update: if (isOwner(uid) && isNotBlocked()) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // ── Rooms (public read, admin write) ─────────────────────────────────────
+    match /rooms/{roomId} {
+      allow read: if true;
+      allow create, delete: if isAdmin();
+      allow update: if isAdmin() || (
+        isAuth() && isNotBlocked() &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['rating', 'reviewCount'])
+      );
+    }
+
+    // ── Bookings ─────────────────────────────────────────────────────────────
+    // All booking creation goes through server-side API routes (Admin SDK bypasses rules).
+    // Client is allowed to READ own bookings only.
+    // Client is NOT allowed to create bookings directly — prevents unpaid booking creation.
+    match /bookings/{bookingId} {
+      allow read: if isAuth() &&
+        (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isAdmin();
+      allow update: if isAdmin() ||
+        (isAuth() &&
+          resource.data.userId == request.auth.uid &&
+          request.resource.data.status == 'cancelled');
+      allow delete: if isAdmin();
+    }
+
+    // ── Availability ─────────────────────────────────────────────────────────
+    // Public read for booking calendar. Writes go through server API (Admin SDK)
+    // or admin panel (admin role). Regular users cannot tamper with availability.
+    match /availability/{roomId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ── Payments (audit log, server-write only) ───────────────────────────────
+    // Written exclusively by server-side Admin SDK. Admins can read for support.
+    // Regular users have no direct access — booking records hold their payment info.
+    match /payments/{paymentId} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+
+    // ── Reviews ──────────────────────────────────────────────────────────────
+    match /reviews/{reviewId} {
+      allow read: if true;
+      allow create: if isAuth() && isNotBlocked();
+      allow update, delete: if isAdmin() ||
+        (isAuth() && resource.data.userId == request.auth.uid);
+    }
+
+    // ── Coupons (admin-managed, server-validated) ─────────────────────────────
+    // No direct client read — coupon validation happens server-side to prevent
+    // clients from inspecting valid codes or remaining usage counts.
+    match /coupons/{couponId} {
+      allow read, write: if isAdmin();
+    }
+
+    // ── Favorites ────────────────────────────────────────────────────────────
+    match /favorites/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+
+    // ── OTPs ─────────────────────────────────────────────────────────────────
+    // Written and read exclusively by server-side Admin SDK (send-otp and
+    // verify-otp API routes). Clients have no direct access — prevents OTP
+    // enumeration and hash exposure.
+    match /otps/{userId} {
+      allow read, write: if false;
+    }
+
+    // ── Activity Logs (server-write only) ────────────────────────────────────
+    match /activity_logs/{logId} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+
+    // ── Nearby Locations (public read, admin write) ───────────────────────────
+    match /nearby_locations/{locationId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    // ── Gallery (public read, admin write) ───────────────────────────────────
+    match /gallery/{itemId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+  }
+}

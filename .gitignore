@@ -1,5 +1,10 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
+# Firebase secrets — NEVER commit these
+service-account.json
+.env.local
+.env*.local
+
 # dependencies
 /node_modules
 /.pnp
@@ -35,6 +40,11 @@ yarn-error.log*
 
 # vercel
 .vercel
+
+# Claude Code
+.claude/
+.agents/
+skills-lock.json
 
 # typescript
 *.tsbuildinfo

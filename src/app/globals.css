@@ -1,26 +1,236 @@
 @import "tailwindcss";
+@import "react-day-picker/dist/style.css";
+
+/* Enable class-based dark mode for dark: Tailwind utilities */
+@custom-variant dark (&:where(.dark, .dark *));
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #1c1917;
+  --font-inter: 'Inter', sans-serif;
+}
+
+.dark {
+  --background: #1c1917;
+  --foreground: #f5f5f4;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-inter);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f5f5f4;
+}
+::-webkit-scrollbar-thumb {
+  background: #d6d3d1;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a29e;
+}
+
+/* React Day Picker v10 overrides — amber/gold premium theme */
+.rdp-root {
+  --rdp-accent-color: #d97706;
+  --rdp-accent-background-color: #fef3c7;
+  --rdp-today-color: #d97706;
+  --rdp-range_middle-background-color: #fef3c7;
+  --rdp-range_start-date-background-color: #d97706;
+  --rdp-range_end-date-background-color: #d97706;
+}
+/* search-rdp overrides the accent inline via CSS var already */
+.search-rdp {
+  --rdp-accent-color: #d97706 !important;
+  --rdp-accent-background-color: #fef3c7 !important;
+}
+
+/* Mobile safe-area utilities (iOS home indicator) */
+.pb-safe {
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+}
+.bottom-safe {
+  bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Hide scrollbar while preserving scroll behaviour */
+.no-scrollbar {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome/Safari/Opera */
+}
+
+/* Animation utilities */
+@keyframes shimmer {
+  from { background-position: -200% 0; }
+  to { background-position: 200% 0; }
+}
+
+/* ── Blended dual-tone background: Midnight Blue × Forest Green ──
+   Both colours live together seamlessly. Blue pools top-left/top-right,
+   green pools bottom-right, amber warmth drifts through the middle.
+   The base gradient unifies them into a single flowing surface. ── */
+.bg-dual-blend {
+  background:
+    /* Blue — top-left cool anchor */
+    radial-gradient(ellipse at 5%  15%,  rgba(59, 130, 246, 0.14) 0%, transparent 52%),
+    /* Golden yellow — top-right warm burst */
+    radial-gradient(ellipse at 92% 8%,   rgba(251, 191, 36, 0.16) 0%, transparent 42%),
+    /* Amber orange — centre-right drift */
+    radial-gradient(ellipse at 72% 38%,  rgba(234,  88,  12, 0.11) 0%, transparent 42%),
+    /* Warm gold — centre glow */
+    radial-gradient(ellipse at 48% 52%,  rgba(217, 119,   6, 0.09) 0%, transparent 50%),
+    /* Emerald — bottom-right forest anchor */
+    radial-gradient(ellipse at 88% 80%,  rgba(16,  185, 129, 0.13) 0%, transparent 52%),
+    /* Teal — bottom-left forest anchor */
+    radial-gradient(ellipse at 12% 88%,  rgba(5,   150, 105, 0.09) 0%, transparent 48%),
+    /* Base: dark blue → dark teal → dark forest */
+    linear-gradient(150deg, #04101C 0%, #061411 55%, #071A0C 100%);
+}
+
+/* Hero image gradient — fades into the blended page bg */
+.bg-detail-hero-fade {
+  background: linear-gradient(to bottom,
+    transparent 0%,
+    rgba(6,14,20,0.55) 55%,
+    #061411 100%);
+}
+
+/* Map grid-line texture used in the contact section location card */
+.map-grid {
+  background-image: linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* Frosted glass input */
+.input-glass {
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+}
+
+/* ── Dashboard background — light & vibrant ──
+   Warm cream base with Forest Green, Royal Blue, Gold & Orange colour pools
+   bleeding softly from each corner. Cards sit as dark panels on top. ── */
+.bg-dashboard {
+  background:
+    radial-gradient(ellipse at 5%  10%, rgba(29,  78, 216, 0.13) 0%, transparent 50%),
+    radial-gradient(ellipse at 90%  6%, rgba(245, 158,  11, 0.16) 0%, transparent 46%),
+    radial-gradient(ellipse at 78% 72%, rgba(234,  88,  12, 0.12) 0%, transparent 50%),
+    radial-gradient(ellipse at 8%  88%, rgba(22,  101,  52, 0.14) 0%, transparent 52%),
+    radial-gradient(ellipse at 50% 50%, rgba(251, 191,  36, 0.06) 0%, transparent 58%),
+    linear-gradient(148deg, #EEF2FF 0%, #F0FDF4 50%, #FFFBEB 100%);
+}
+
+/* Dashboard background — dark mode override */
+.dark .bg-dashboard {
+  background:
+    radial-gradient(ellipse at 5%  10%, rgba(29,  78, 216, 0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 90%  6%, rgba(245, 158,  11, 0.06) 0%, transparent 46%),
+    radial-gradient(ellipse at 78% 72%, rgba(234,  88,  12, 0.05) 0%, transparent 50%),
+    radial-gradient(ellipse at 8%  88%, rgba(22,  101,  52, 0.06) 0%, transparent 52%),
+    linear-gradient(148deg, #060A16 0%, #050E06 50%, #080700 100%);
+}
+
+/* Dashboard sidebar — stays dark for contrast against light bg */
+.dash-sidebar {
+  background: linear-gradient(175deg, #0C2347 0%, #0A2A1A 55%, #0C2040 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Active nav item — Gold → Orange */
+.dash-nav-active {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.25) 0%, rgba(234, 88, 12, 0.20) 100%);
+  border: 1px solid rgba(245, 158, 11, 0.40);
+}
+
+/* Main content card — dark panel floating on the light bg */
+.dash-card {
+  background: linear-gradient(145deg, #0E1F3A 0%, #0A2018 100%);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+}
+
+/* Dark mode: lighten cards so they lift off the near-black background */
+.dark .dash-card {
+  background: linear-gradient(145deg, #1E3254 0%, #162B20 100%);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
+}
+.dark .dash-card-gold {
+  background: linear-gradient(145deg, #2A1C00 0%, #3D2900 100%);
+  border: 1px solid rgba(245, 158, 11, 0.45);
+}
+.dark .dash-card-blue {
+  background: linear-gradient(145deg, #0D1A3A 0%, #152E60 100%);
+  border: 1px solid rgba(29, 78, 216, 0.50);
+}
+.dark .dash-card-green {
+  background: linear-gradient(145deg, #061810 0%, #0E3020 100%);
+  border: 1px solid rgba(22, 101, 52, 0.55);
+}
+.dark .dash-card-orange {
+  background: linear-gradient(145deg, #280D00 0%, #3E1A00 100%);
+  border: 1px solid rgba(234, 88, 12, 0.50);
+}
+
+/* Accent dark cards */
+.dash-card-gold   {
+  background: linear-gradient(145deg, #1C1200 0%, #2D1E00 100%);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+}
+.dash-card-blue   {
+  background: linear-gradient(145deg, #071028 0%, #0D1E45 100%);
+  border: 1px solid rgba(29, 78, 216, 0.38);
+}
+.dash-card-green  {
+  background: linear-gradient(145deg, #041008 0%, #0A2318 100%);
+  border: 1px solid rgba(22, 101, 52, 0.42);
+}
+.dash-card-orange {
+  background: linear-gradient(145deg, #1C0800 0%, #2E1200 100%);
+  border: 1px solid rgba(234, 88, 12, 0.38);
+}
+
+/* Gallery horizontal scroll strip */
+.gallery-scroll {
+  scroll-snap-type: x mandatory;
+}
+.gallery-col {
+  scroll-snap-align: start;
+}
+
+/* Upcoming trip banner — Royal Blue → Forest Green → Gold */
+.dash-trip-banner {
+  background: linear-gradient(135deg, #1E3A8A 0%, #166534 60%, #B45309 100%);
+}
+
+/* Form input — dark glass for use inside dark cards */
+.dash-input {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #f5f5f4;
 }
