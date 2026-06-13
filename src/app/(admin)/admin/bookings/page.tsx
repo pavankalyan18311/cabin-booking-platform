@@ -102,10 +102,27 @@ export default function AdminBookingsPage() {
   const [rejectReason, setRejectReason] = useState('');
   const [rejecting, setRejecting]       = useState(false);
   const [refundingId, setRefundingId]   = useState<string | null>(null);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+  const [launching, setLaunching]         = useState(false);
 
   useEffect(() => {
     getAllBookingsAdmin().then(setBookings).finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    const onScroll = () => setShowScrollTop(window.scrollY > 300);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  const handleRocketLaunch = () => {
+    if (launching) return;
+    setLaunching(true);
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 400);
+    setTimeout(() => setLaunching(false), 1200);
+  };
 
   const handleStatusUpdate = async (id: string, status: BookingStatus) => {
     try {
@@ -453,6 +470,27 @@ export default function AdminBookingsPage() {
               </motion.div>
             );
           })}
+        </div>
+      )}
+
+      {/* ── Rocket scroll-to-top ── */}
+      {showScrollTop && (
+        <button
+          type="button"
+          onClick={handleRocketLaunch}
+          aria-label="Scroll to top"
+          className="fixed bottom-6 right-6 z-50 w-12 h-12 rounded-full bg-amber-500 hover:bg-amber-400
+            shadow-lg flex items-center justify-center text-2xl
+            transition-all duration-300 hover:scale-110 active:scale-95"
+        >
+          🚀
+        </button>
+      )}
+
+      {/* Rocket launch trail animation */}
+      {launching && (
+        <div className="rocket-launch fixed bottom-6 right-7 z-50 text-2xl pointer-events-none">
+          🚀
         </div>
       )}
 

@@ -234,3 +234,13 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.12);
   color: #f5f5f4;
 }
+
+/* Rocket scroll-to-top launch animation */
+@keyframes rocketLaunch {
+  0%   { transform: translateY(0)     rotate(-45deg); opacity: 1; }
+  60%  { transform: translateY(-50vh) rotate(-45deg); opacity: 1; }
+  100% { transform: translateY(-110vh) rotate(-45deg); opacity: 0; }
+}
+.rocket-launch {
+  animation: rocketLaunch 1s ease-in forwards;
+}
