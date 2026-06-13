@@ -28,9 +28,9 @@ export default function DashboardPage() {
     : 0;
 
   const stats = [
-    { label: 'Total Bookings',  value: bookings.length,           icon: Calendar, cardCls: 'dash-card-gold',   iconCls: 'text-amber-400',   valueCls: 'text-amber-300'  },
-    { label: 'Favorites Saved', value: favorites.length,          icon: Heart,    cardCls: 'dash-card-orange',  iconCls: 'text-orange-400',  valueCls: 'text-orange-300' },
-    { label: 'Trips Completed', value: completedBookings.length,  icon: MapPin,   cardCls: 'dash-card-green',   iconCls: 'text-emerald-400', valueCls: 'text-emerald-300'},
+    { label: 'Bookings',  value: bookings.length,           icon: Calendar, cardCls: 'dash-card-gold',   iconCls: 'text-amber-400',   valueCls: 'text-amber-300'  },
+    { label: 'Favorites', value: favorites.length,          icon: Heart,    cardCls: 'dash-card-orange',  iconCls: 'text-orange-400',  valueCls: 'text-orange-300' },
+    { label: 'Completed', value: completedBookings.length,  icon: MapPin,   cardCls: 'dash-card-green',   iconCls: 'text-emerald-400', valueCls: 'text-emerald-300'},
   ];
 
   return (
@@ -88,15 +88,15 @@ export default function DashboardPage() {
       )}
 
       {/* ── Stats ── */}
-      <div className="grid grid-cols-3 gap-3 sm:gap-4">
+      <div className="grid grid-cols-3 gap-2.5 sm:gap-4">
         {stats.map((s, i) => (
-          <motion.div key={s.label} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 + i * 0.06 }}>
-            <div className={`${s.cardCls} rounded-2xl p-4 sm:p-5`}>
-              <s.icon className={`h-5 w-5 ${s.iconCls} mb-3`} />
+          <motion.div key={s.label} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 + i * 0.06 }} className="h-full">
+            <div className={`${s.cardCls} rounded-2xl p-3 sm:p-5 h-full flex flex-col`}>
+              <s.icon className={`h-4 w-4 sm:h-5 sm:w-5 ${s.iconCls} mb-2 sm:mb-3 shrink-0`} />
               <div className={`text-2xl sm:text-3xl font-black ${s.valueCls}`}>
-                {loading ? <Skeleton className="h-8 w-8 bg-white/10" /> : s.value}
+                {loading ? <Skeleton className="h-7 w-7 bg-white/10" /> : s.value}
               </div>
-              <p className="text-white/75 text-xs mt-0.5 font-medium">{s.label}</p>
+              <p className="text-white/75 text-[11px] sm:text-xs mt-0.5 font-medium leading-tight">{s.label}</p>
             </div>
           </motion.div>
         ))}
