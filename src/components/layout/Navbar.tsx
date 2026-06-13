@@ -114,8 +114,8 @@ export default function Navbar() {
           <div className="flex items-center gap-2">
             {user ? (
               <>
-                {/* Theme toggle — logged-in users, non-landing pages only */}
-                {mounted && pathname !== '/' && (
+                {/* Theme toggle — logged-in users, non-landing/admin/rooms pages only */}
+                {mounted && pathname !== '/' && !pathname.startsWith('/admin') && !pathname.startsWith('/rooms') && (
                   <button
                     type="button"
                     onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}

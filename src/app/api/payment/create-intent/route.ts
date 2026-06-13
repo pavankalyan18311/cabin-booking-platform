@@ -4,7 +4,7 @@ import { adminAuth, adminDb } from '@/lib/firebase/admin';
 import { COLLECTIONS } from '@/lib/firebase/collections';
 import { calculateBookingTotal, calculateNights } from '@/lib/utils';
 import type { Coupon, PaymentType } from '@/types';
-import { parseISO } from 'date-fns';
+import { parseISO, eachDayOfInterval, format } from 'date-fns';
 
 const HALF_RATE = 0.50;
 
@@ -61,6 +61,18 @@ export async function POST(request: NextRequest) {
     }
     if (room.isAvailable === false) {
       return NextResponse.json({ error: 'This property is not available' }, { status: 400 });
+    }
+
+    // ── Date availability check — before charging the user ───────────────────
+    const requestedDates = eachDayOfInterval({ start: parseISO(checkIn), end: parseISO(checkOut) })
+      .slice(0, -1)
+      .map((d) => format(d, 'yyyy-MM-dd'));
+    const availSnap = await db.collection(COLLECTIONS.AVAILABILITY).doc(roomId).get();
+    if (availSnap.exists) {
+      const bookedDates: string[] = availSnap.data()!.bookedDates ?? [];
+      if (requestedDates.some((d) => bookedDates.includes(d))) {
+        return NextResponse.json({ error: 'Selected dates are no longer available' }, { status: 409 });
+      }
     }
 
     // ── Pricing (always server-side — never trust client amounts) ─────────────

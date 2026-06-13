@@ -36,16 +36,6 @@ export async function POST(request: NextRequest) {
 
     const db = adminDb();
 
-    // ── Idempotency: return existing booking if already created ───────────────
-    const existingQuery = await db
-      .collection(COLLECTIONS.BOOKINGS)
-      .where('paymentIntentId', '==', paymentIntentId)
-      .limit(1)
-      .get();
-    if (!existingQuery.empty) {
-      return NextResponse.json({ bookingId: existingQuery.docs[0].id });
-    }
-
     // ── Extract all values from Stripe metadata (server-validated at intent creation) ──
     const m = paymentIntent.metadata;
     const roomId = m.roomId;
@@ -82,8 +72,16 @@ export async function POST(request: NextRequest) {
 
     let bookingId = '';
 
-    // ── Firestore transaction: room guard + booking create + availability update ──
+    // ── Firestore transaction: idempotency + room guard + booking create + availability update ──
+    // The lock doc (paymentIntentId as key) makes idempotency atomic — no race condition possible.
     await db.runTransaction(async (tx) => {
+      const lockRef = db.collection('paymentLocks').doc(paymentIntentId);
+      const lockSnap = await tx.get(lockRef);
+      if (lockSnap.exists) {
+        bookingId = lockSnap.data()!.bookingId as string;
+        return; // already processed — skip all writes
+      }
+
       const roomRef = db.collection(COLLECTIONS.ROOMS).doc(roomId);
       const roomSnap = await tx.get(roomRef);
       if (roomSnap.exists) {
@@ -137,6 +135,7 @@ export async function POST(request: NextRequest) {
       const bookingRef = db.collection(COLLECTIONS.BOOKINGS).doc();
       bookingId = bookingRef.id;
       tx.set(bookingRef, booking);
+      tx.set(lockRef, { bookingId, createdAt: now });
 
       if (availSnap.exists) {
         tx.update(availRef, {

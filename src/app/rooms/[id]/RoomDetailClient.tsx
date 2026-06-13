@@ -1,9 +1,10 @@
 'use client';
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import {
-  MapPin, Users, Bed, Bath, Maximize, Star, Share2, ChevronLeft, ChevronRight,
+  MapPin, Users, Bed, Bath, Star, Share2, ChevronLeft, ChevronRight, Maximize2, X,
   Wifi, Flame, Droplets, TreePine, Dog, ChefHat, Car, Mountain, Check, Loader2, ArrowLeft,
 } from 'lucide-react';
 import Link from 'next/link';
@@ -27,9 +28,51 @@ const AMENITY_ICONS: Record<string, React.ElementType> = {
 
 interface Props { room: Room; bookedDates: string[]; reviews: Review[]; }
 
+function ImageLightbox({ images, title, startIdx, onClose }: {
+  images: string[]; title: string; startIdx: number; onClose: () => void;
+}) {
+  const [current, setCurrent] = useState(startIdx);
+  const prev = (e: React.MouseEvent) => { e.stopPropagation(); setCurrent(i => (i - 1 + images.length) % images.length); };
+  const next = (e: React.MouseEvent) => { e.stopPropagation(); setCurrent(i => (i + 1) % images.length); };
+  return (
+    <div className="fixed inset-0 z-[9999] bg-black/95 flex items-center justify-center" onClick={onClose}>
+      <button type="button" aria-label="Close" onClick={onClose}
+        className="absolute top-4 right-4 z-10 p-2.5 rounded-full bg-white/15 text-white hover:bg-white/30 transition-colors">
+        <X className="h-5 w-5" />
+      </button>
+      {images.length > 1 && <>
+        <button type="button" aria-label="Previous" onClick={prev}
+          className="absolute left-3 sm:left-6 z-10 p-2.5 rounded-full bg-white/15 text-white hover:bg-white/30 transition-colors">
+          <ChevronLeft className="h-5 w-5" />
+        </button>
+        <button type="button" aria-label="Next" onClick={next}
+          className="absolute right-3 sm:right-6 z-10 p-2.5 rounded-full bg-white/15 text-white hover:bg-white/30 transition-colors">
+          <ChevronRight className="h-5 w-5" />
+        </button>
+      </>}
+      <div className="relative w-full h-full max-w-5xl max-h-[88vh] mx-16 sm:mx-20" onClick={e => e.stopPropagation()}>
+        <Image src={images[current]} alt={`${title} — photo ${current + 1}`} fill className="object-contain" sizes="100vw" />
+      </div>
+      <div className="absolute bottom-4 left-0 right-0 flex flex-col items-center gap-2">
+        {images.length > 1 && (
+          <div className="flex gap-1.5">
+            {images.map((_, i) => (
+              <button key={i} type="button" aria-label={`Photo ${i + 1}`}
+                onClick={e => { e.stopPropagation(); setCurrent(i); }}
+                className={`w-2 h-2 rounded-full transition-all ${i === current ? 'bg-white scale-110' : 'bg-white/35'}`} />
+            ))}
+          </div>
+        )}
+        <span className="text-white/50 text-xs">{current + 1} / {images.length} · {title}</span>
+      </div>
+    </div>
+  );
+}
+
 export default function RoomDetailClient({ room, bookedDates, reviews }: Props) {
   const { user } = useAuthStore();
   const [imgIdx, setImgIdx] = useState(0);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
   const [localReviews, setLocalReviews] = useState<Review[]>(reviews);
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState('');
@@ -70,6 +113,10 @@ export default function RoomDetailClient({ room, bookedDates, reviews }: Props) 
 
   return (
     <div className="min-h-screen bg-dual-blend">
+      {lightboxOpen && typeof document !== 'undefined' && createPortal(
+        <ImageLightbox images={images} title={room.title} startIdx={imgIdx} onClose={() => setLightboxOpen(false)} />,
+        document.body
+      )}
 
       {/* ── Hero image ── */}
       <div className="relative h-[55vh] sm:h-[65vh] overflow-hidden group">
@@ -123,10 +170,19 @@ export default function RoomDetailClient({ room, bookedDates, reviews }: Props) 
               <ArrowLeft className="h-4 w-4" /> All cabins
             </button>
           </Link>
-          <button type="button" onClick={handleShare} aria-label="Share this cabin"
-            className="p-2.5 bg-black/30 backdrop-blur-sm rounded-xl text-white/80 hover:text-white transition-colors">
-            <Share2 className="h-4 w-4" />
-          </button>
+          <div className="flex items-center gap-2">
+            {images.length > 0 && (
+              <button type="button" onClick={() => setLightboxOpen(true)} aria-label="View all photos fullscreen"
+                className="flex items-center gap-1.5 bg-black/30 backdrop-blur-sm px-3 py-2 rounded-xl text-white/80 hover:text-white text-sm transition-colors">
+                <Maximize2 className="h-4 w-4" />
+                <span className="hidden sm:inline">{images.length} photos</span>
+              </button>
+            )}
+            <button type="button" onClick={handleShare} aria-label="Share this cabin"
+              className="p-2.5 bg-black/30 backdrop-blur-sm rounded-xl text-white/80 hover:text-white transition-colors">
+              <Share2 className="h-4 w-4" />
+            </button>
+          </div>
         </div>
 
         {/* Bottom title overlay */}
