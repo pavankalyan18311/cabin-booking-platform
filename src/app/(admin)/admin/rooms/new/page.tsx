@@ -18,9 +18,10 @@ import Link from 'next/link';
 import { toast } from 'sonner';
 
 const AMENITIES_LIST = [
-  'WiFi', 'Fireplace', 'Kitchen', 'Air Conditioning', 'Heating', 'Fire Pit', 'BBQ Grill', 'Parking',
-  'Porch', 'Screened Porch', 'Hot Tub', 'Whirlpool Tub', 'Bathtub', 'Washer/Dryer',
-  'TV / Satellite TV', 'Coffee Maker', 'Ceiling Fans', 'Pet Friendly',
+  'WiFi', 'Fireplace', 'Kitchen', 'Dishwasher', 'Air Conditioning', 'Heating', 'Ceiling Fans',
+  'Fire Pit', 'BBQ Grill', 'Parking', 'Porch', 'Screened Porch', 'Balcony', 'Terrace',
+  'Hot Tub', 'Whirlpool Tub', 'Bathtub', 'Washer/Dryer', 'Iron',
+  'TV / Satellite TV', 'Coffee Maker', 'Pet Friendly',
   'Pool', 'Mountain View', 'Lakefront', 'Game Room', 'Kayaks', 'Fishing Access',
 ];
 

@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 import {
   MapPin, Users, Bed, Bath, Star, Share2, ChevronLeft, ChevronRight, Maximize, Maximize2, X,
   Wifi, Flame, Droplets, TreePine, Dog, ChefHat, Car, Mountain, Check, Loader2, ArrowLeft,
-  Tv, Coffee, Wind, Home, Thermometer, WashingMachine,
+  Tv, Coffee, Wind, Home, Thermometer, WashingMachine, UtensilsCrossed, Shirt, Hotel,
 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -40,7 +40,11 @@ const AMENITY_ICONS: Record<string, React.ElementType> = {
   'Air Conditioning': Thermometer,
   Porch: Home,
   'Screened Porch': Home,
+  Balcony: Home,
+  Terrace: Home,
   'Washer/Dryer': WashingMachine,
+  Dishwasher: UtensilsCrossed,
+  Iron: Shirt,
 };
 
 interface Props { room: Room; bookedDates: string[]; reviews: Review[]; }

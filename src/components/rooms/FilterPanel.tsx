@@ -9,11 +9,11 @@ import { useSearchStore } from '@/store';
 import type { RoomCategory } from '@/types';
 
 const AMENITIES = [
-  'WiFi', 'Fireplace', 'Kitchen', 'Air Conditioning', 'Heating', 'Fire Pit', 'BBQ Grill',
-  'Porch', 'Screened Porch', 'Hot Tub', 'Whirlpool Tub', 'Bathtub',
-  'TV / Satellite TV', 'Coffee Maker', 'Ceiling Fans',
-  'Washer/Dryer', 'Parking', 'Pet Friendly', 'Pool', 'Mountain View', 'Lakefront',
-  'Game Room', 'Kayaks', 'Fishing Access',
+  'WiFi', 'Fireplace', 'Kitchen', 'Dishwasher', 'Air Conditioning', 'Heating', 'Ceiling Fans',
+  'Fire Pit', 'BBQ Grill', 'Parking', 'Porch', 'Screened Porch', 'Balcony', 'Terrace',
+  'Hot Tub', 'Whirlpool Tub', 'Bathtub', 'Washer/Dryer', 'Iron',
+  'TV / Satellite TV', 'Coffee Maker', 'Pet Friendly',
+  'Pool', 'Mountain View', 'Lakefront', 'Game Room', 'Kayaks', 'Fishing Access',
 ];
 
 const CATEGORIES: { value: RoomCategory; label: string }[] = [
