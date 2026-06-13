@@ -304,7 +304,7 @@ export default function AdminBookingsPage() {
                     <div className="text-right shrink-0">
                       <p className="text-xl font-bold text-stone-900">{formatCurrency(b.totalPrice)}</p>
                       {(b.discountAmount ?? 0) > 0 && (
-                        <p className="text-xs text-emerald-600">−{formatCurrency(b.discountAmount)} discount</p>
+                        <p className="text-xs text-emerald-600">−{formatCurrency(b.discountAmount ?? 0)} discount</p>
                       )}
                     </div>
                   </div>
