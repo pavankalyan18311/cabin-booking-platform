@@ -4,7 +4,7 @@ import { createPortal } from 'react-dom';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import {
-  MapPin, Users, Bed, Bath, Star, Share2, ChevronLeft, ChevronRight, Maximize2, X,
+  MapPin, Users, Bed, Bath, Star, Share2, ChevronLeft, ChevronRight, Maximize, Maximize2, X,
   Wifi, Flame, Droplets, TreePine, Dog, ChefHat, Car, Mountain, Check, Loader2, ArrowLeft,
 } from 'lucide-react';
 import Link from 'next/link';
