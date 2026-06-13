@@ -21,9 +21,10 @@ import { toast } from 'sonner';
 import type { Room } from '@/types';
 
 const AMENITIES_LIST = [
-  'WiFi', 'Hot Tub', 'Fireplace', 'Pet Friendly', 'Kitchen', 'Air Conditioning',
-  'Washer/Dryer', 'Parking', 'Pool', 'BBQ Grill', 'Mountain View', 'Lakefront',
-  'Game Room', 'Fire Pit', 'Kayaks', 'Fishing Access',
+  'WiFi', 'Fireplace', 'Kitchen', 'Air Conditioning', 'Heating', 'Fire Pit', 'BBQ Grill', 'Parking',
+  'Porch', 'Screened Porch', 'Hot Tub', 'Whirlpool Tub', 'Bathtub', 'Washer/Dryer',
+  'TV / Satellite TV', 'Coffee Maker', 'Ceiling Fans', 'Pet Friendly',
+  'Pool', 'Mountain View', 'Lakefront', 'Game Room', 'Kayaks', 'Fishing Access',
 ];
 
 export default function EditRoomPage({ params }: { params: Promise<{ id: string }> }) {

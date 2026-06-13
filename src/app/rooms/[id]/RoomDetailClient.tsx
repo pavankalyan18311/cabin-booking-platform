@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import {
   MapPin, Users, Bed, Bath, Star, Share2, ChevronLeft, ChevronRight, Maximize, Maximize2, X,
   Wifi, Flame, Droplets, TreePine, Dog, ChefHat, Car, Mountain, Check, Loader2, ArrowLeft,
+  Tv, Coffee, Wind, Home, Thermometer, WashingMachine,
 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -22,8 +23,24 @@ import { useAuthStore } from '@/store';
 import { createReview } from '@/services/reviews.service';
 
 const AMENITY_ICONS: Record<string, React.ElementType> = {
-  WiFi: Wifi, Fireplace: Flame, 'Hot Tub': Droplets, 'Forest Setting': TreePine,
-  'Pet Friendly': Dog, Kitchen: ChefHat, Parking: Car, 'Mountain View': Mountain,
+  WiFi: Wifi,
+  Fireplace: Flame,
+  'Hot Tub': Droplets,
+  'Whirlpool Tub': Droplets,
+  Bathtub: Bath,
+  'Forest Setting': TreePine,
+  'Pet Friendly': Dog,
+  Kitchen: ChefHat,
+  Parking: Car,
+  'Mountain View': Mountain,
+  'TV / Satellite TV': Tv,
+  'Coffee Maker': Coffee,
+  'Ceiling Fans': Wind,
+  Heating: Thermometer,
+  'Air Conditioning': Thermometer,
+  Porch: Home,
+  'Screened Porch': Home,
+  'Washer/Dryer': WashingMachine,
 };
 
 interface Props { room: Room; bookedDates: string[]; reviews: Review[]; }
