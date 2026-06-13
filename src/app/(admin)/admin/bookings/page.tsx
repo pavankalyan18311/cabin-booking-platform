@@ -303,7 +303,7 @@ export default function AdminBookingsPage() {
                     </div>
                     <div className="text-right shrink-0">
                       <p className="text-xl font-bold text-stone-900">{formatCurrency(b.totalPrice)}</p>
-                      {b.discountAmount && b.discountAmount > 0 && (
+                      {(b.discountAmount ?? 0) > 0 && (
                         <p className="text-xs text-emerald-600">−{formatCurrency(b.discountAmount)} discount</p>
                       )}
                     </div>
@@ -473,24 +473,41 @@ export default function AdminBookingsPage() {
         </div>
       )}
 
-      {/* ── Rocket scroll-to-top ── */}
-      {showScrollTop && (
+      {/* ── Rocket scroll-to-top button ── */}
+      {showScrollTop && !launching && (
         <button
           type="button"
           onClick={handleRocketLaunch}
           aria-label="Scroll to top"
-          className="fixed bottom-6 right-6 z-50 w-12 h-12 rounded-full bg-amber-500 hover:bg-amber-400
-            shadow-lg flex items-center justify-center text-2xl
+          className="rocket-btn fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full
+            bg-gradient-to-br from-amber-400 to-orange-500
+            shadow-[0_0_20px_rgba(251,146,60,0.6)] hover:shadow-[0_0_32px_rgba(251,146,60,0.9)]
+            flex items-center justify-center text-3xl
             transition-all duration-300 hover:scale-110 active:scale-95"
         >
           🚀
         </button>
       )}
 
-      {/* Rocket launch trail animation */}
+      {/* Grand rocket launch sequence */}
       {launching && (
-        <div className="rocket-launch fixed bottom-6 right-7 z-50 text-2xl pointer-events-none">
-          🚀
+        <div className="pointer-events-none">
+          {/* Screen flash */}
+          <div className="rocket-flash fixed inset-0 z-40 bg-amber-400/20" />
+          {/* Main rocket */}
+          <div className="rocket-launch fixed bottom-6 right-6 z-50 text-5xl">🚀</div>
+          {/* Flame trail 1 */}
+          <div className="rocket-trail-1 fixed bottom-6 right-7 z-49 text-3xl">🔥</div>
+          {/* Flame trail 2 */}
+          <div className="rocket-trail-2 fixed bottom-6 right-7 z-49 text-2xl">🔥</div>
+          {/* Smoke puff left */}
+          <div className="rocket-smoke-l fixed bottom-10 right-12 z-49 text-2xl">💨</div>
+          {/* Smoke puff right */}
+          <div className="rocket-smoke-r fixed bottom-10 right-4 z-49 text-2xl">💨</div>
+          {/* Star sparks */}
+          <div className="rocket-spark-1 fixed bottom-8 right-2 z-49 text-xl">⭐</div>
+          <div className="rocket-spark-2 fixed bottom-8 right-14 z-49 text-lg">✨</div>
+          <div className="rocket-spark-3 fixed bottom-14 right-10 z-49 text-base">⭐</div>
         </div>
       )}
 
