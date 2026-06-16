@@ -11,11 +11,11 @@ import GallerySection from '@/components/shared/GallerySection';
 import NearbyLocationsSection from '@/components/shared/NearbyLocationsSection';
 
 export const metadata: Metadata = {
-  title: 'Relax Cabin — Premium Cabin & Property Rentals',
-  description: 'Discover handpicked luxury cabin retreats nestled in nature. Book your perfect escape today with Relax Cabin.',
+  title: 'Relaxin Cabins — New Lisbon, WI Cabin Rentals',
+  description: '7 unique rentals in New Lisbon, WI — traditional log cabins, beachside luxury suites, and a grand lodge. Open year-round, pet-friendly, minutes from Castle Rock Lake.',
   openGraph: {
-    title: 'Relax Cabin — Premium Cabin & Property Rentals',
-    description: 'Discover handpicked luxury cabin retreats nestled in nature.',
+    title: 'Relaxin Cabins — New Lisbon, WI Cabin Rentals',
+    description: '7 unique rentals in New Lisbon, WI. Open year-round, pet-friendly, minutes from Castle Rock Lake.',
     type: 'website',
   },
 };

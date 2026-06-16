@@ -11,9 +11,9 @@ import { Toaster } from 'sonner';
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
 export const metadata: Metadata = {
-  title: { default: 'Relax Cabin — Premium Cabin & Property Rentals', template: '%s | Relax Cabin' },
-  description: 'Discover handpicked luxury cabin retreats nestled in nature. Book your perfect escape today with Relax Cabin.',
-  keywords: ['cabin rental', 'vacation rental', 'mountain cabin', 'forest retreat', 'luxury cabin'],
+  title: { default: 'Relaxin Cabins — New Lisbon, WI', template: '%s | Relaxin Cabins' },
+  description: '7 unique rentals in New Lisbon, WI — traditional log cabins, beachside luxury suites, and a grand lodge. Open year-round, pet-friendly, minutes from Castle Rock Lake.',
+  keywords: ['cabin rental', 'New Lisbon WI', 'Wisconsin cabin', 'Castle Rock Lake', 'pet friendly cabin', 'vacation rental Wisconsin'],
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

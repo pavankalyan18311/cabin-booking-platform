@@ -4,12 +4,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, X } from 'lucide-react';
 
 const faqs = [
-  { q:'How do I make a reservation?',         a:"Browse our properties, pick your cabin, choose your dates, and complete the booking form. You'll receive instant confirmation via email." },
-  { q:'What is your cancellation policy?',    a:'Free cancellation up to 48 hours before check-in for most properties. Premium cabins may have different policies, clearly stated on each listing.' },
-  { q:'Are pets allowed?',                    a:'Many cabins are pet-friendly! Look for the "Pet Friendly" badge. Check individual property rules for any restrictions or additional fees.' },
-  { q:'Is there a minimum stay requirement?', a:'Most properties require a 2-night minimum. Some require longer during peak seasons — displayed clearly on each listing.' },
-  { q:'What amenities are included?',         a:'All cabins include bedding, towels, and kitchen basics. Premium amenities like hot tubs and fireplaces are clearly marked on each listing.' },
-  { q:'How do I access the property?',        a:"You'll get detailed check-in instructions including access codes 24 hours before arrival via email and SMS." },
+  { q:'How do I make a reservation?',         a:"Browse our 7 rentals, pick your cabin, choose your dates, and complete the booking form. You'll receive instant confirmation via email." },
+  { q:'What is your cancellation policy?',    a:'We work with Vacasa as our property management company. Cancellation terms are outlined in your rental agreement at the time of booking. Contact us at 608-350-0800 with any questions.' },
+  { q:'Are pets allowed?',                    a:'Yes — all 7 rentals at Relaxin Cabins are pet-friendly. Just bring your furry family member and enjoy the property together.' },
+  { q:'Is there a minimum stay requirement?', a:'Minimum stay requirements vary by rental and season. Check individual rental listings for specific stay requirements, or call us at 608-350-0800.' },
+  { q:'What amenities are included?',         a:'Every rental includes a full kitchen, fire pit, fireplace or stove, private porch, and BBQ grill. The Luxe adds a whirlpool tub and screened porch. The Lodge features a floor-to-ceiling rock fireplace and granite kitchen.' },
+  { q:'Where is the property located?',       a:'Relaxin Cabins is at N6768 WI-58, New Lisbon, WI 53950 — minutes from Castle Rock Lake and about 20 min from Wisconsin Dells. Open year-round.' },
 ];
 
 export default function FAQSection() {

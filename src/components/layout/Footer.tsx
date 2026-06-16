@@ -15,7 +15,7 @@ export default function Footer() {
               <span className="font-bold text-xl text-white">Relax Cabin</span>
             </Link>
             <p className="text-sm leading-relaxed">
-              Discover premium cabin retreats nestled in nature. Your perfect escape awaits.
+              7 unique rentals on one beautiful property in New Lisbon, WI — open year-round, pet-friendly, minutes from Castle Rock Lake.
             </p>
             <div className="flex gap-3">
               {[
@@ -38,11 +38,17 @@ export default function Footer() {
 
           {/* Explore */}
           <div>
-            <h4 className="text-white font-semibold mb-4">Explore</h4>
+            <h4 className="text-white font-semibold mb-4">Our Rentals</h4>
             <ul className="space-y-2 text-sm">
-              {['All Cabins', 'Lakefront', 'Mountain View', 'Pet Friendly', 'Hot Tub'].map((item) => (
-                <li key={item}>
-                  <Link href="/rooms" className="hover:text-amber-400 transition-colors">{item}</Link>
+              {[
+                { label: 'All 7 Rentals',    href: '/rooms' },
+                { label: 'The Lodge',         href: '/rooms' },
+                { label: 'The Loft',          href: '/rooms' },
+                { label: 'The Luxe',          href: '/rooms' },
+                { label: 'Wooded Cabins',     href: '/rooms' },
+              ].map((item) => (
+                <li key={item.label}>
+                  <Link href={item.href} className="hover:text-amber-400 transition-colors">{item.label}</Link>
                 </li>
               ))}
             </ul>
@@ -55,7 +61,6 @@ export default function Footer() {
               {[
                 { label: 'About Us',        href: '/about'    },
                 { label: 'Blog',            href: '/blog'     },
-                { label: 'Careers',         href: '/careers'  },
                 { label: 'Privacy Policy',  href: '/privacy'  },
                 { label: 'Terms of Service',href: '/terms'    },
               ].map((item) => (

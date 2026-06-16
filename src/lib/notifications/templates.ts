@@ -41,7 +41,7 @@ function base(content: string, previewText = ''): string {
         <tr>
           <td style="background:linear-gradient(135deg,#d97706 0%,#92400e 100%);padding:28px 32px;text-align:center;">
             <h1 style="margin:0;color:#ffffff;font-size:26px;font-weight:800;letter-spacing:-0.5px;">🏕️ Relax Cabin</h1>
-            <p style="margin:6px 0 0;color:rgba(255,255,255,0.8);font-size:13px;">Premium Cabin Retreats</p>
+            <p style="margin:6px 0 0;color:rgba(255,255,255,0.8);font-size:13px;">New Lisbon, WI · Open Year-Round</p>
           </td>
         </tr>
         <!-- Body -->
@@ -49,9 +49,9 @@ function base(content: string, previewText = ''): string {
         <!-- Footer -->
         <tr>
           <td style="background:#fafaf9;border-top:1px solid #e7e5e4;padding:20px 32px;text-align:center;">
-            <p style="margin:0;font-size:12px;color:#a8a29e;">© ${new Date().getFullYear()} Relax Cabin · Premium Cabin Retreats</p>
+            <p style="margin:0;font-size:12px;color:#a8a29e;">© ${new Date().getFullYear()} Relax Cabin · New Lisbon, WI · Open Year-Round</p>
             <p style="margin:4px 0 0;font-size:11px;color:#d4cfc9;">You received this email because of activity on your Relax Cabin account.</p>
-            <p style="margin:8px 0 0;font-size:11px;color:#a8a29e;">Need help? <a href="mailto:support@relaxcabin.com" style="color:#d97706;text-decoration:none;">support@relaxcabin.com</a></p>
+            <p style="margin:8px 0 0;font-size:11px;color:#a8a29e;">Need help? <a href="mailto:relaxingatcabins@gmail.com" style="color:#d97706;text-decoration:none;">relaxingatcabins@gmail.com</a></p>
           </td>
         </tr>
       </table>
@@ -126,6 +126,9 @@ export interface BookingEmailData {
   specialRequests?: string;
   rejectionReason?: string;
   cancellationReason?: string;
+  paymentType?: 'full' | 'half' | 'token';
+  depositAmount?: number;
+  remainingBalance?: number;
 }
 
 export interface OTPEmailData {
@@ -219,6 +222,23 @@ export function bookingCreatedTemplate(d: BookingEmailData): string {
     ${d.specialRequests ? `<div style="background:#fafaf9;border-left:3px solid #d97706;padding:10px 14px;border-radius:0 8px 8px 0;margin-bottom:20px;"><p style="margin:0 0 3px;font-size:11px;font-weight:700;color:#78716c;text-transform:uppercase;">Special Requests</p><p style="margin:0;font-size:13px;color:#44403c;">${d.specialRequests}</p></div>` : ''}
 
     ${MAPS_BLOCK}
+
+    ${d.paymentType === 'half' && d.depositAmount !== undefined && d.remainingBalance !== undefined ? `
+    <!-- Half-payment notice -->
+    <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:12px;padding:16px 20px;margin-bottom:20px;">
+      <p style="margin:0 0 6px;font-size:14px;font-weight:700;color:#9a3412;">💳 Half-Payment Plan</p>
+      <table width="100%" cellpadding="0" cellspacing="0">
+        <tr>
+          <td style="font-size:13px;color:#7c2d12;">Paid today</td>
+          <td align="right" style="font-size:13px;font-weight:700;color:#7c2d12;">${fmt(d.depositAmount)}</td>
+        </tr>
+        <tr>
+          <td style="font-size:13px;color:#9a3412;padding-top:4px;">Due at check-in</td>
+          <td align="right" style="font-size:13px;font-weight:700;color:#9a3412;padding-top:4px;">${fmt(d.remainingBalance)}</td>
+        </tr>
+      </table>
+      <p style="margin:8px 0 0;font-size:12px;color:#b45309;">Please bring the remaining balance on arrival. Cash or card accepted.</p>
+    </div>` : ''}
 
     <!-- Next steps -->
     <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:12px;padding:18px 20px;">
@@ -334,7 +354,7 @@ export function bookingRejectedTemplate(d: BookingEmailData): string {
 
     <p style="margin:0;font-size:13px;color:#57534e;line-height:1.6;">
       If a payment was taken, our team will process a full refund within 3–5 business days.
-      For assistance, please contact <a href="mailto:support@relaxcabin.com" style="color:#d97706;text-decoration:none;">support@relaxcabin.com</a>.
+      For assistance, please contact <a href="mailto:relaxingatcabins@gmail.com" style="color:#d97706;text-decoration:none;">relaxingatcabins@gmail.com</a>.
     </p>
   </td></tr>`;
 
@@ -392,7 +412,7 @@ export function bookingCancelledTemplate(d: BookingEmailData): string {
     <p style="margin:0;font-size:13px;color:#57534e;line-height:1.6;">
       The dates have been freed and are available for new bookings.
       If a payment was taken, a refund will be processed within 3–5 business days.
-      Questions? <a href="mailto:support@relaxcabin.com" style="color:#d97706;text-decoration:none;">Contact us</a>.
+      Questions? <a href="mailto:relaxingatcabins@gmail.com" style="color:#d97706;text-decoration:none;">Contact us</a>.
     </p>
   </td></tr>`;
 

@@ -2,14 +2,14 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Loader2, MailCheck, RefreshCw, CheckCircle2 } from 'lucide-react';
+import { Loader2, MailCheck, RefreshCw, CheckCircle2, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { auth } from '@/lib/firebase/config';
 import { useAuthStore } from '@/store';
 import { toast } from 'sonner';
 
-const RESEND_COOLDOWN = 60; // seconds
+const RESEND_COOLDOWN = 60;
 
 async function getToken(): Promise<string> {
   const user = auth.currentUser;
@@ -28,20 +28,27 @@ export default function VerifyEmailPage() {
   const [sending, setSending] = useState(false);
   const [cooldown, setCooldown] = useState(0);
   const [verified, setVerified] = useState(false);
+  const [emailWarning, setEmailWarning] = useState(false);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-  // Auto-send OTP on first mount
   useEffect(() => {
     sendOTP(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Cooldown tick
   useEffect(() => {
     if (cooldown <= 0) return;
     const id = setInterval(() => setCooldown((c) => Math.max(0, c - 1)), 1000);
     return () => clearInterval(id);
   }, [cooldown]);
+
+  // Auto-submit when all 6 digits are filled
+  useEffect(() => {
+    if (digits.every((d) => d !== '') && digits.join('').length === 6) {
+      handleVerify();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [digits]);
 
   const sendOTP = useCallback(async (silent = false) => {
     setSending(true);
@@ -53,7 +60,10 @@ export default function VerifyEmailPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? 'Failed to send code');
-      if (!silent) toast.success('New code sent! Check your inbox.');
+      if (data.emailWarning) {
+        setEmailWarning(true);
+      }
+      if (!silent) toast.success('New code sent! Check your inbox and spam folder.');
       setCooldown(RESEND_COOLDOWN);
     } catch (err: unknown) {
       const msg = (err as Error).message;
@@ -71,10 +81,8 @@ export default function VerifyEmailPage() {
   }, [redirect, router, user, setUser]);
 
   const handleDigitInput = (index: number, value: string) => {
-    // Accept only a single digit; handle paste of full 6-digit code
     if (value.length === 6 && /^\d{6}$/.test(value)) {
-      const newDigits = value.split('');
-      setDigits(newDigits);
+      setDigits(value.split(''));
       inputRefs.current[5]?.focus();
       return;
     }
@@ -102,10 +110,7 @@ export default function VerifyEmailPage() {
       const token = await getToken();
       const res = await fetch('/api/auth/verify-otp', {
         method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ otp }),
       });
       const data = await res.json();
@@ -124,11 +129,7 @@ export default function VerifyEmailPage() {
 
   if (verified) {
     return (
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="w-full max-w-md"
-      >
+      <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="w-full max-w-md">
         <Card className="shadow-2xl border-0 text-center">
           <CardContent className="py-12 space-y-4">
             <CheckCircle2 className="h-14 w-14 text-emerald-500 mx-auto" />
@@ -155,30 +156,51 @@ export default function VerifyEmailPage() {
           <CardTitle className="text-2xl">Verify your email</CardTitle>
           <CardDescription>
             We sent a 6-digit code to{' '}
-            <span className="font-medium text-stone-700">{user?.email ?? 'your email'}</span>.
-            <br />Check your inbox (and spam folder).
+            <span className="font-semibold text-stone-700">{user?.email ?? 'your email'}</span>
           </CardDescription>
         </CardHeader>
 
-        <CardContent className="space-y-6">
+        <CardContent className="space-y-5">
+          {/* Spam notice */}
+          <div className="flex items-start gap-2.5 bg-amber-50 border border-amber-200 rounded-xl p-3.5 text-sm">
+            <AlertCircle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+            <div className="text-amber-800">
+              <span className="font-semibold">Not in your inbox?</span> Check your{' '}
+              <strong>Spam</strong> or <strong>Junk</strong> folder. To always receive our emails, add{' '}
+              <strong>relaxingatcabins@gmail.com</strong> to your contacts.
+            </div>
+          </div>
+
+          {emailWarning && (
+            <div className="flex items-start gap-2.5 bg-red-50 border border-red-200 rounded-xl p-3.5 text-sm text-red-800">
+              <AlertCircle className="h-4 w-4 text-red-500 shrink-0 mt-0.5" />
+              <span>Email delivery had an issue. The code is saved — try entering it below, or resend after the cooldown.</span>
+            </div>
+          )}
+
           {/* 6-digit input */}
-          <div className="flex justify-center gap-2 sm:gap-3">
-            {digits.map((d, i) => (
-              <input
-                key={i}
-                ref={(el) => { inputRefs.current[i] = el; }}
-                type="text"
-                inputMode="numeric"
-                maxLength={6}
-                value={d}
-                onChange={(e) => handleDigitInput(i, e.target.value)}
-                onKeyDown={(e) => handleKeyDown(i, e)}
-                onFocus={(e) => e.target.select()}
-                className="w-11 h-14 text-center text-2xl font-bold border-2 rounded-xl
-                  focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200
-                  border-stone-200 bg-stone-50 text-stone-900 transition-all"
-              />
-            ))}
+          <div>
+            <p className="text-xs text-stone-400 text-center mb-3">Enter the 6-digit code below (or paste it)</p>
+            <div className="flex justify-center gap-2 sm:gap-3">
+              {digits.map((d, i) => (
+                <input
+                  key={i}
+                  ref={(el) => { inputRefs.current[i] = el; }}
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={6}
+                  value={d}
+                  aria-label={`Digit ${i + 1} of 6`}
+                  title={`Verification code digit ${i + 1}`}
+                  onChange={(e) => handleDigitInput(i, e.target.value)}
+                  onKeyDown={(e) => handleKeyDown(i, e)}
+                  onFocus={(e) => e.target.select()}
+                  className="w-11 h-14 text-center text-2xl font-bold border-2 rounded-xl
+                    focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200
+                    border-stone-200 bg-stone-50 text-stone-900 transition-all"
+                />
+              ))}
+            </div>
           </div>
 
           <Button
@@ -188,7 +210,7 @@ export default function VerifyEmailPage() {
             disabled={verifying || digits.join('').length < 6}
           >
             {verifying
-              ? <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Verifying...</>
+              ? <><Loader2 className="h-4 w-4 animate-spin mr-2" />Verifying...</>
               : 'Verify Email'}
           </Button>
 
@@ -207,6 +229,11 @@ export default function VerifyEmailPage() {
               {cooldown > 0 ? `Resend in ${cooldown}s` : 'Resend code'}
             </Button>
           </div>
+
+          <p className="text-xs text-stone-400 text-center">
+            Code expires in 10 minutes. The code is sent from{' '}
+            <span className="text-stone-500">relaxingatcabins@gmail.com</span>
+          </p>
         </CardContent>
       </Card>
     </motion.div>

@@ -11,4 +11,5 @@ export const COLLECTIONS = {
   OTPS: 'otps',
   NEARBY_LOCATIONS: 'nearby_locations',
   GALLERY: 'gallery',
+  PASSWORD_RESETS: 'password_resets',
 } as const;

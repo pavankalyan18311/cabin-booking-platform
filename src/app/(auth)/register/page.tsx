@@ -11,7 +11,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { registerSchema, type RegisterInput } from '@/lib/validations';
-import { registerWithEmail, loginWithGoogle } from '@/services/auth.service';
+import { registerWithEmail, loginWithEmail, loginWithGoogle } from '@/services/auth.service';
+import { getUserProfile } from '@/services/auth.service';
 import { useAuthStore } from '@/store';
 import { toast } from 'sonner';
 
@@ -21,7 +22,7 @@ export default function RegisterPage() {
   const router = useRouter();
   const { setUser } = useAuthStore();
 
-  const { register, handleSubmit, watch, formState: { errors, isSubmitting } } = useForm<RegisterInput>({
+  const { register, handleSubmit, watch, getValues, formState: { errors, isSubmitting } } = useForm<RegisterInput>({
     resolver: zodResolver(registerSchema),
   });
 
@@ -39,10 +40,31 @@ export default function RegisterPage() {
       toast.success('Account created! Please verify your email.');
       router.push('/verify-email');
     } catch (err: unknown) {
-      const msg = (err as { code?: string })?.code === 'auth/email-already-in-use'
-        ? 'Email already in use'
-        : 'Failed to create account';
-      toast.error(msg);
+      const code = (err as { code?: string })?.code;
+
+      if (code === 'auth/email-already-in-use') {
+        // Try signing them in to check verification status
+        try {
+          const cred = await loginWithEmail(data.email, getValues('password'));
+          const profile = await getUserProfile(cred.user.uid);
+          setUser(profile);
+
+          if (profile?.authProvider === 'email' && !profile.isEmailVerified) {
+            toast.info('Account exists but email is not verified. Sending a new code.');
+            router.push('/verify-email');
+          } else {
+            toast.info('You already have a verified account. Sign in instead.');
+            router.push('/login');
+          }
+        } catch {
+          // Password didn't match — account definitely exists
+          toast.error('An account with this email already exists. Try signing in.');
+          router.push('/login');
+        }
+        return;
+      }
+
+      toast.error('Failed to create account. Please try again.');
     }
   };
 
@@ -70,7 +92,7 @@ export default function RegisterPage() {
       <Card className="shadow-2xl border-0">
         <CardHeader className="text-center pb-2">
           <CardTitle className="text-2xl">Create your account</CardTitle>
-          <CardDescription>Join Relax Cabin and discover amazing retreats</CardDescription>
+          <CardDescription>Join Relaxin Cabins and book your perfect Wisconsin getaway</CardDescription>
         </CardHeader>
         <CardContent className="space-y-5">
           <Button onClick={handleGoogleSignup} disabled={googleLoading} variant="outline" className="w-full h-11 gap-2">
@@ -80,7 +102,7 @@ export default function RegisterPage() {
 
           <div className="flex items-center gap-3">
             <div className="flex-1 h-px bg-stone-200" />
-            <span className="text-xs text-stone-400 font-medium">or</span>
+            <span className="text-xs text-stone-400 font-medium">or sign up with email</span>
             <div className="flex-1 h-px bg-stone-200" />
           </div>
 

@@ -2,13 +2,14 @@ import nodemailer from 'nodemailer';
 
 function getTransporter() {
   const user = process.env.EMAIL_USER;
-  const pass = process.env.EMAIL_PASS?.replace(/\s+/g, ''); // Gmail shows password grouped with spaces — strip them
+  const pass = process.env.EMAIL_PASS?.replace(/\s+/g, '');
   if (!user || !pass || pass.includes('your-') || user.includes('your-')) return null;
   return nodemailer.createTransport({
     host: process.env.EMAIL_HOST ?? 'smtp.gmail.com',
     port: Number(process.env.EMAIL_PORT ?? 587),
     secure: Number(process.env.EMAIL_PORT ?? 587) === 465,
     auth: { user, pass },
+    tls: { rejectUnauthorized: false },
   });
 }
 
@@ -26,7 +27,8 @@ export async function sendEmail(payload: EmailPayload): Promise<{ sent: boolean;
   }
   try {
     await transporter.sendMail({
-      from: `"Relax Cabin" <${process.env.EMAIL_USER}>`,
+      from: `"Relaxin Cabins" <${process.env.EMAIL_USER}>`,
+      replyTo: process.env.EMAIL_USER,
       ...payload,
     });
     return { sent: true };

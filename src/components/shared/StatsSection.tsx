@@ -3,10 +3,10 @@ import { motion } from 'framer-motion';
 import { Home, Users, Star, Award } from 'lucide-react';
 
 const stats = [
-  { icon: Home,  value: '500+', label: 'Premium Cabins',      sub: 'Across 30+ states'    },
-  { icon: Users, value: '50K+', label: 'Happy Guests',        sub: 'And counting daily'   },
-  { icon: Star,  value: '4.9',  label: 'Average Rating',      sub: 'From 2,847 reviews'   },
-  { icon: Award, value: '8+',   label: 'Years of Excellence', sub: 'Trusted since 2016'   },
+  { icon: Home,  value: '7',   label: 'Unique Rentals',  sub: 'New Lisbon, Wisconsin'        },
+  { icon: Users, value: '4',   label: 'Rental Styles',   sub: 'Cabins · Loft · Luxe · Lodge' },
+  { icon: Star,  value: '5.0', label: 'Guest Rating',    sub: 'Across all rentals'           },
+  { icon: Award, value: '2',   label: 'Private Ponds',   sub: 'Beachside & wooded settings'  },
 ];
 
 export default function StatsSection() {

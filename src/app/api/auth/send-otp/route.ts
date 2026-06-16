@@ -6,9 +6,8 @@ import { NotificationService } from '@/lib/notifications';
 import type { OTPRecord } from '@/types';
 
 const OTP_EXPIRY_MINUTES = 10;
-const MAX_ATTEMPTS = 5;
-const RATE_LIMIT_MAX = 3;        // max OTP sends per window
-const RATE_LIMIT_WINDOW_MS = 30 * 60 * 1000; // 30 minutes
+const RATE_LIMIT_MAX = 3;
+const RATE_LIMIT_WINDOW_MS = 30 * 60 * 1000;
 
 function hashOTP(otp: string, userId: string): string {
   return createHash('sha256').update(otp + userId).digest('hex');
@@ -28,7 +27,6 @@ export async function POST(request: NextRequest) {
     const otpSnap = await otpRef.get();
     const now = new Date();
 
-    // Rate limit: max RATE_LIMIT_MAX sends per 30-min window
     if (otpSnap.exists) {
       const existing = otpSnap.data() as OTPRecord;
       if (existing.verified) {
@@ -48,7 +46,6 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Fetch user info for the email
     const userSnap = await db.collection(COLLECTIONS.USERS).doc(userId).get();
     if (!userSnap.exists) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
@@ -61,12 +58,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No email address on file' }, { status: 400 });
     }
 
-    // Generate 6-digit OTP
     const otp = String(randomInt(100000, 1000000));
     const otpHash = hashOTP(otp, userId);
     const expiresAt = new Date(now.getTime() + OTP_EXPIRY_MINUTES * 60 * 1000).toISOString();
 
-    // Determine rate limit window values
     let requestCount = 1;
     let windowStart = now.toISOString();
 
@@ -92,15 +87,22 @@ export async function POST(request: NextRequest) {
       createdAt: now.toISOString(),
     };
 
+    // Save OTP first, then send email synchronously — do NOT use after() as it
+    // requires experimental.after and silently drops the email if not enabled.
     await otpRef.set(record);
 
-    // Fire-and-forget — never block the response on email delivery
-    void NotificationService.sendOTP({
+    const result = await NotificationService.sendOTP({
       to: email,
       guestName: displayName,
       otp,
       expiresInMinutes: OTP_EXPIRY_MINUTES,
-    }).catch((e) => console.error('[send-otp] email failed:', e));
+    });
+
+    if (!result.sent) {
+      console.error('[send-otp] email failed to send:', result.reason);
+      // Still return success — OTP is in Firestore, user can resend
+      return NextResponse.json({ sent: true, emailWarning: 'Email delivery issue — please check spam or resend.' });
+    }
 
     return NextResponse.json({ sent: true });
   } catch (err: unknown) {
