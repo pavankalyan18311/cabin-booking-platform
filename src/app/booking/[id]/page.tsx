@@ -14,6 +14,7 @@ import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import ProtectedRoute from '@/components/shared/ProtectedRoute';
+import SupportDialog from '@/components/shared/SupportDialog';
 import { getBookingById } from '@/services/bookings.service';
 import { getRoomById } from '@/services/rooms.service';
 import { formatCurrency, formatDate, getStatusColor } from '@/lib/utils';
@@ -237,9 +238,10 @@ function BookingDetailSkeleton() {
 
 export default function BookingConfirmationPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const [booking, setBooking] = useState<Booking | null>(null);
-  const [room,    setRoom]    = useState<Room | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [booking, setBooking]     = useState<Booking | null>(null);
+  const [room,    setRoom]        = useState<Room | null>(null);
+  const [loading, setLoading]     = useState(true);
+  const [supportOpen, setSupportOpen] = useState(false);
 
   useEffect(() => {
     getBookingById(id).then(async (b) => {
@@ -436,11 +438,12 @@ export default function BookingConfirmationPage({ params }: { params: Promise<{ 
                     <ArrowLeft className="h-4 w-4" /> My Bookings
                   </Button>
                 </Link>
-                <a href="mailto:relaxingatcabins@gmail.com" className="flex-1">
-                  <Button className="w-full gap-2 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white border-0 font-bold shadow-md shadow-orange-200">
-                    <Phone className="h-4 w-4" /> Contact Support
-                  </Button>
-                </a>
+                <Button
+                  className="flex-1 w-full gap-2 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white border-0 font-bold shadow-md shadow-orange-200"
+                  onClick={() => setSupportOpen(true)}
+                >
+                  <Phone className="h-4 w-4" /> Contact Support
+                </Button>
                 {(booking.status === 'completed' || booking.status === 'cancelled' || booking.status === 'rejected') && (
                   <Link href="/rooms" className="flex-1">
                     <Button variant="premium" className="w-full gap-2">
@@ -454,6 +457,15 @@ export default function BookingConfirmationPage({ params }: { params: Promise<{ 
           )}
         </div>
       </div>
+
+      <SupportDialog
+        open={supportOpen}
+        onClose={() => setSupportOpen(false)}
+        bookingId={booking?.id}
+        roomTitle={booking?.roomTitle ?? undefined}
+        userEmail={booking?.userEmail ?? undefined}
+        userName={booking?.userName ?? undefined}
+      />
     </ProtectedRoute>
   );
 }

@@ -6,7 +6,6 @@ import Image from 'next/image';
 import {
   Calendar, Users, Loader2, ChevronRight, Tag, Phone,
   CreditCard, Clock, Copy, Check, Receipt, Mountain,
-  Mail, X,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -16,6 +15,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from '@/components/ui/dialog';
 import { useAuthStore } from '@/store';
+import SupportDialog from '@/components/shared/SupportDialog';
 import { useUserBookings } from '@/hooks/useBookings';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import { auth } from '@/lib/firebase/config';
@@ -81,7 +81,7 @@ function BookingSkeleton() {
   );
 }
 
-function BookingCard({ booking, onCancel, onSupport }: { booking: Booking; onCancel: (id: string) => void; onSupport: () => void }) {
+function BookingCard({ booking, onCancel, onSupport }: { booking: Booking; onCancel: (id: string) => void; onSupport: (id: string, roomTitle?: string) => void }) {
   const payBadge  = paymentBadge(booking.paymentStatus, booking.paymentType);
   const subtotal  = booking.nightlyRate * booking.nights;
   const canCancel = booking.status === 'pending' || booking.status === 'confirmed';
@@ -202,7 +202,7 @@ function BookingCard({ booking, onCancel, onSupport }: { booking: Booking; onCan
             </Button>
           )}
           <Button variant="ghost" size="sm" className="h-8 text-xs gap-1 text-white/65 hover:text-white hover:bg-white/8"
-            onClick={onSupport}>
+            onClick={() => onSupport(booking.id, booking.roomTitle ?? undefined)}>
             <Phone className="h-3 w-3" /> Support
           </Button>
         </div>
@@ -222,7 +222,7 @@ export default function BookingsPage() {
   const [cancelId, setCancelId]     = useState<string | null>(null);
   const [cancelReason, setCancelReason] = useState('');
   const [cancelling, setCancelling] = useState(false);
-  const [supportOpen, setSupportOpen] = useState(false);
+  const [supportBooking, setSupportBooking] = useState<{ id: string; roomTitle?: string } | null>(null);
 
   const { pullDistance, refreshing, triggered } = usePullToRefresh({ onRefresh: refetch });
   const filtered = tab === 'all' ? bookings : bookings.filter((b) => b.status === tab);
@@ -338,7 +338,7 @@ export default function BookingsPage() {
             <div className="space-y-3">
               {filtered.map((booking, i) => (
                 <motion.div key={booking.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
-                  <BookingCard booking={booking} onCancel={openCancelDialog} onSupport={() => setSupportOpen(true)} />
+                  <BookingCard booking={booking} onCancel={openCancelDialog} onSupport={(id, room) => setSupportBooking({ id, roomTitle: room })} />
                 </motion.div>
               ))}
             </div>
@@ -346,47 +346,14 @@ export default function BookingsPage() {
         </TabsContent>
       </Tabs>
 
-      {/* Support dialog */}
-      <Dialog open={supportOpen} onOpenChange={setSupportOpen}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Phone className="h-4 w-4 text-amber-500" /> Contact Support
-            </DialogTitle>
-            <DialogDescription asChild>
-              <div className="space-y-4 mt-2">
-                <p className="text-sm text-stone-600">Our team is here to help with your booking. Reach us via email or phone.</p>
-                <div className="space-y-3">
-                  <a href="mailto:relaxingatcabins@gmail.com"
-                    className="flex items-center gap-3 p-3 rounded-xl bg-stone-50 border border-stone-100 hover:border-amber-300 hover:bg-amber-50 transition-colors group">
-                    <div className="p-2 bg-amber-100 rounded-lg shrink-0">
-                      <Mail className="h-4 w-4 text-amber-600" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-semibold text-stone-500 uppercase tracking-wide">Email</p>
-                      <p className="text-sm font-bold text-stone-800 group-hover:text-amber-700">relaxingatcabins@gmail.com</p>
-                    </div>
-                  </a>
-                  <a href="tel:+16083500800"
-                    className="flex items-center gap-3 p-3 rounded-xl bg-stone-50 border border-stone-100 hover:border-amber-300 hover:bg-amber-50 transition-colors group">
-                    <div className="p-2 bg-emerald-100 rounded-lg shrink-0">
-                      <Phone className="h-4 w-4 text-emerald-600" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-semibold text-stone-500 uppercase tracking-wide">Phone</p>
-                      <p className="text-sm font-bold text-stone-800 group-hover:text-emerald-700">608-350-0800</p>
-                    </div>
-                  </a>
-                </div>
-                <p className="text-xs text-stone-400 text-center">Available Mon–Sun · 9 AM – 8 PM CT</p>
-              </div>
-            </DialogDescription>
-          </DialogHeader>
-          <Button variant="outline" className="w-full mt-1" onClick={() => setSupportOpen(false)}>
-            <X className="h-4 w-4 mr-1.5" /> Close
-          </Button>
-        </DialogContent>
-      </Dialog>
+      <SupportDialog
+        open={!!supportBooking}
+        onClose={() => setSupportBooking(null)}
+        bookingId={supportBooking?.id}
+        roomTitle={supportBooking?.roomTitle}
+        userEmail={user?.email ?? undefined}
+        userName={user?.displayName ?? undefined}
+      />
 
       {/* Cancel dialog — kept light for accessibility */}
       <Dialog open={!!cancelId} onOpenChange={(open) => { if (!open) closeCancelDialog(); }}>
