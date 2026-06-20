@@ -7,11 +7,13 @@ import {
   bookingRejectedTemplate,
   bookingCompletedTemplate,
   bookingCancelledTemplate,
+  adminBookingNotificationTemplate,
   type BookingEmailData,
   type OTPEmailData,
+  type AdminBookingEmailData,
 } from './templates';
 
-export type { BookingEmailData, OTPEmailData };
+export type { BookingEmailData, OTPEmailData, AdminBookingEmailData };
 
 export const NotificationService = {
   async sendOTP(data: OTPEmailData) {
@@ -67,6 +69,16 @@ export const NotificationService = {
       to: data.to,
       subject: `Booking cancelled — ${data.roomTitle}`,
       html: bookingCancelledTemplate(data),
+    });
+  },
+
+  async adminBookingAlert(data: AdminBookingEmailData) {
+    const adminEmail = process.env.ADMIN_EMAIL;
+    if (!adminEmail) return { sent: false, reason: 'ADMIN_EMAIL not configured' };
+    return sendEmail({
+      to: adminEmail,
+      subject: `New booking: ${data.guestName} → ${data.roomTitle}`,
+      html: adminBookingNotificationTemplate(data),
     });
   },
 };

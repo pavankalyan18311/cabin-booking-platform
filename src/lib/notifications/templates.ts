@@ -421,3 +421,114 @@ export function bookingCancelledTemplate(d: BookingEmailData): string {
     `Booking cancelled — ${d.roomTitle}`
   );
 }
+
+// ─── Admin: New Booking Alert ─────────────────────────────────────────────────
+
+export interface AdminBookingEmailData {
+  bookingId: string;
+  guestName: string;
+  guestEmail: string;
+  roomTitle: string;
+  checkIn: string;
+  checkOut: string;
+  nights: number;
+  guests: number;
+  nightlyRate: number;
+  serviceFee: number;
+  taxes: number;
+  totalPrice: number;
+  discountAmount?: number;
+  couponCode?: string;
+  paymentIntentId?: string;
+  paymentType?: 'full' | 'half' | 'token';
+  depositAmount?: number;
+  remainingBalance?: number;
+  specialRequests?: string;
+  adminDashboardUrl: string;
+}
+
+export function adminBookingNotificationTemplate(d: AdminBookingEmailData): string {
+  const paymentLabel = d.paymentType === 'half'
+    ? 'Half-payment'
+    : d.paymentType === 'token'
+    ? 'Token payment'
+    : 'Paid in full';
+
+  const content = `
+  <tr><td style="padding:24px 32px 32px;">
+    <p style="margin:0 0 20px;font-size:14px;color:#57534e;line-height:1.6;">
+      A new booking has been received and is awaiting your review.
+    </p>
+
+    <!-- Guest info -->
+    <table width="100%" cellpadding="0" cellspacing="0" style="background:#fafaf9;border:1px solid #e7e5e4;border-radius:12px;margin-bottom:20px;">
+      <tr><td style="padding:16px 20px;">
+        <p style="margin:0 0 4px;font-size:10px;font-weight:700;color:#78716c;text-transform:uppercase;letter-spacing:0.5px;">Guest</p>
+        <p style="margin:0 0 2px;font-size:16px;font-weight:700;color:#1c1917;">${d.guestName}</p>
+        <p style="margin:0;font-size:13px;color:#78716c;">${d.guestEmail}</p>
+      </td></tr>
+    </table>
+
+    <!-- Room & Dates -->
+    <table width="100%" cellpadding="0" cellspacing="0" style="background:#fafaf9;border:1px solid #e7e5e4;border-radius:12px;margin-bottom:20px;">
+      <tr><td style="padding:16px 20px;">
+        <p style="margin:0 0 4px;font-size:10px;font-weight:700;color:#78716c;text-transform:uppercase;letter-spacing:0.5px;">Stay Details</p>
+        <p style="margin:0 0 6px;font-size:16px;font-weight:700;color:#1c1917;">${d.roomTitle}</p>
+        <p style="margin:0 0 4px;font-size:13px;color:#44403c;">
+          ${fmtDate(d.checkIn)} &rarr; ${fmtDate(d.checkOut)}
+        </p>
+        <p style="margin:0;font-size:13px;color:#78716c;">${d.nights} night${d.nights !== 1 ? 's' : ''} &bull; ${d.guests} guest${d.guests !== 1 ? 's' : ''}</p>
+      </td></tr>
+    </table>
+
+    <!-- Payment summary -->
+    <table width="100%" cellpadding="0" cellspacing="0" style="background:#fffbeb;border:1px solid #fde68a;border-radius:12px;margin-bottom:20px;">
+      <tr><td style="padding:16px 20px;">
+        <p style="margin:0 0 10px;font-size:10px;font-weight:700;color:#92400e;text-transform:uppercase;letter-spacing:0.5px;">Payment</p>
+        <table width="100%" cellpadding="0" cellspacing="0">
+          <tr>
+            <td style="font-size:13px;color:#57534e;padding:3px 0;">${fmt(d.nightlyRate)} &times; ${d.nights} night${d.nights !== 1 ? 's' : ''}</td>
+            <td align="right" style="font-size:13px;color:#57534e;">${fmt(d.nightlyRate * d.nights)}</td>
+          </tr>
+          ${d.discountAmount && d.discountAmount > 0 ? `<tr><td style="font-size:13px;color:#059669;padding:3px 0;">Coupon${d.couponCode ? ` (${d.couponCode})` : ''}</td><td align="right" style="font-size:13px;color:#059669;">−${fmt(d.discountAmount)}</td></tr>` : ''}
+          <tr>
+            <td style="font-size:13px;color:#57534e;padding:3px 0;">Service fee</td>
+            <td align="right" style="font-size:13px;color:#57534e;">${fmt(d.serviceFee)}</td>
+          </tr>
+          <tr>
+            <td style="font-size:13px;color:#57534e;padding:3px 0;">Taxes</td>
+            <td align="right" style="font-size:13px;color:#57534e;">${fmt(d.taxes)}</td>
+          </tr>
+          <tr style="border-top:2px solid #fde68a;">
+            <td style="font-size:15px;font-weight:700;color:#1c1917;padding:8px 0 3px;">Total</td>
+            <td align="right" style="font-size:15px;font-weight:700;color:#d97706;padding:8px 0 3px;">${fmt(d.totalPrice)}</td>
+          </tr>
+          <tr>
+            <td colspan="2" style="font-size:12px;color:#92400e;padding-top:4px;">
+              ${paymentLabel}${d.paymentType === 'half' && d.depositAmount !== undefined ? ` — ${fmt(d.depositAmount)} paid, ${fmt(d.remainingBalance ?? 0)} due at check-in` : ''}
+            </td>
+          </tr>
+        </table>
+      </td></tr>
+    </table>
+
+    ${d.specialRequests ? `<div style="background:#f0f9ff;border-left:3px solid #38bdf8;padding:10px 14px;border-radius:0 8px 8px 0;margin-bottom:20px;"><p style="margin:0 0 3px;font-size:11px;font-weight:700;color:#0369a1;text-transform:uppercase;">Special Requests</p><p style="margin:0;font-size:13px;color:#0c4a6e;">${d.specialRequests}</p></div>` : ''}
+
+    <!-- IDs -->
+    <p style="margin:0 0 4px;font-size:11px;color:#a8a29e;">Booking ID: <span style="font-family:monospace;font-weight:600;color:#44403c;">${d.bookingId}</span></p>
+    ${d.paymentIntentId ? `<p style="margin:0 0 20px;font-size:11px;color:#a8a29e;">Transaction: <span style="font-family:monospace;">${d.paymentIntentId}</span></p>` : '<div style="margin-bottom:20px;"></div>'}
+
+    <!-- CTA -->
+    <div style="text-align:center;">
+      <a href="${d.adminDashboardUrl}" target="_blank"
+        style="display:inline-block;background:linear-gradient(135deg,#d97706 0%,#92400e 100%);color:#ffffff;font-size:14px;font-weight:700;text-decoration:none;padding:14px 32px;border-radius:10px;">
+        Review Booking in Admin Panel
+      </a>
+    </div>
+  </td></tr>`;
+
+  return base(
+    statusBanner('#fefce8', '🔔', 'New Booking Received', `${d.guestName} just booked ${d.roomTitle}`) + content,
+    `New booking from ${d.guestName} — ${d.roomTitle}`
+  );
+}

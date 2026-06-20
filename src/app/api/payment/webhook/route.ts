@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse, after } from 'next/server';
 import stripe from '@/lib/stripe/server';
 import { adminDb } from '@/lib/firebase/admin';
 import { COLLECTIONS } from '@/lib/firebase/collections';
@@ -36,23 +36,14 @@ export async function POST(request: NextRequest) {
   // Only handle payment_intent.succeeded — safety net for when the client doesn't call create-booking
   if (event.type === 'payment_intent.succeeded') {
     const paymentIntent = event.data.object as Stripe.PaymentIntent;
-    await handlePaymentSucceeded(paymentIntent, request);
+    await handlePaymentSucceeded(paymentIntent);
   }
 
   return NextResponse.json({ received: true });
 }
 
-async function handlePaymentSucceeded(paymentIntent: Stripe.PaymentIntent, request: NextRequest) {
+async function handlePaymentSucceeded(paymentIntent: Stripe.PaymentIntent) {
   const db = adminDb();
-
-  // Idempotency: skip if booking already created (create-booking route ran first)
-  const existing = await db
-    .collection(COLLECTIONS.BOOKINGS)
-    .where('paymentIntentId', '==', paymentIntent.id)
-    .limit(1)
-    .get();
-  if (!existing.empty) return;
-
   const m = paymentIntent.metadata;
   if (!m.roomId || !m.userId || !m.checkIn || !m.checkOut) {
     console.warn('[webhook] PaymentIntent missing required metadata, skipping', paymentIntent.id);
@@ -65,8 +56,10 @@ async function handlePaymentSucceeded(paymentIntent: Stripe.PaymentIntent, reque
   const serviceFee = Number(m.serviceFee);
   const taxes = Number(m.taxes);
   const discountAmount = Number(m.discountAmount ?? '0');
-  // Guard against negative total (e.g. unusually large flat coupon)
   const total = Math.max(0, subtotal + serviceFee + taxes - discountAmount);
+  const paymentType = (m.paymentType ?? 'full') as 'token' | 'half' | 'full';
+  const depositAmount = Number(m.chargeAmount ?? String(total));
+  const remainingBalance = Number(m.remainingBalance ?? '0');
 
   const bookedDates = eachDayOfInterval({
     start: parseISO(m.checkIn),
@@ -90,6 +83,14 @@ async function handlePaymentSucceeded(paymentIntent: Stripe.PaymentIntent, reque
     }
 
     await db.runTransaction(async (tx) => {
+      // Same paymentLocks idempotency as create-booking route — prevents race condition
+      const lockRef = db.collection('paymentLocks').doc(paymentIntent.id);
+      const lockSnap = await tx.get(lockRef);
+      if (lockSnap.exists) {
+        bookingId = lockSnap.data()!.bookingId as string;
+        return;
+      }
+
       const availRef = db.collection(COLLECTIONS.AVAILABILITY).doc(m.roomId);
       const availSnap = await tx.get(availRef);
 
@@ -104,7 +105,7 @@ async function handlePaymentSucceeded(paymentIntent: Stripe.PaymentIntent, reque
         checkIn: m.checkIn,
         checkOut: m.checkOut,
         guests: Number(m.guests),
-        status: 'pending',
+        status: 'confirmed',
         totalPrice: total,
         nightlyRate,
         nights,
@@ -112,6 +113,9 @@ async function handlePaymentSucceeded(paymentIntent: Stripe.PaymentIntent, reque
         taxes,
         paymentIntentId: paymentIntent.id,
         paymentStatus: 'succeeded',
+        paymentType,
+        depositAmount,
+        remainingBalance,
         discountAmount,
         ...(m.couponCode ? { couponCode: m.couponCode } : {}),
         ...(m.specialRequests ? { specialRequests: m.specialRequests } : {}),
@@ -122,6 +126,7 @@ async function handlePaymentSucceeded(paymentIntent: Stripe.PaymentIntent, reque
       const bookingRef = db.collection(COLLECTIONS.BOOKINGS).doc();
       bookingId = bookingRef.id;
       tx.set(bookingRef, booking);
+      tx.set(lockRef, { bookingId, createdAt: now });
 
       if (availSnap.exists) {
         tx.update(availRef, {
@@ -159,27 +164,58 @@ async function handlePaymentSucceeded(paymentIntent: Stripe.PaymentIntent, reque
     return;
   }
 
-  // Fire-and-forget email — never block the webhook response
-  if (bookingId && m.userEmail) {
-    void NotificationService.bookingCreated({
-      to: m.userEmail,
-      guestName: m.userName ?? m.userEmail,
-      bookingId,
-      roomTitle: m.roomTitle ?? 'Cabin Booking',
-      roomLocation: m.roomLocation ?? '',
-      ...(m.roomMapsUrl ? { mapsUrl: m.roomMapsUrl } : {}),
-      checkIn: m.checkIn,
-      checkOut: m.checkOut,
-      nights,
-      guests: Number(m.guests),
-      nightlyRate,
-      serviceFee,
-      taxes,
-      totalPrice: total,
-      discountAmount,
-      paymentIntentId: paymentIntent.id,
-      ...(m.couponCode ? { couponCode: m.couponCode } : {}),
-      ...(m.specialRequests ? { specialRequests: m.specialRequests } : {}),
-    }).catch((e) => console.error('[webhook] email notify failed:', e));
+  if (bookingId) {
+    after(async () => {
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? '';
+      await Promise.allSettled([
+        m.userEmail
+          ? NotificationService.bookingCreated({
+              to: m.userEmail,
+              guestName: m.userName ?? m.userEmail,
+              bookingId,
+              roomTitle: m.roomTitle ?? 'Cabin Booking',
+              roomLocation: m.roomLocation ?? '',
+              ...(m.roomMapsUrl ? { mapsUrl: m.roomMapsUrl } : {}),
+              checkIn: m.checkIn,
+              checkOut: m.checkOut,
+              nights,
+              guests: Number(m.guests),
+              nightlyRate,
+              serviceFee,
+              taxes,
+              totalPrice: total,
+              discountAmount,
+              paymentIntentId: paymentIntent.id,
+              paymentType,
+              depositAmount,
+              remainingBalance,
+              ...(m.couponCode ? { couponCode: m.couponCode } : {}),
+              ...(m.specialRequests ? { specialRequests: m.specialRequests } : {}),
+            }).catch((e) => console.error('[webhook] guest email failed:', e))
+          : Promise.resolve(),
+        NotificationService.adminBookingAlert({
+          bookingId,
+          guestName: m.userName ?? m.userEmail ?? 'Guest',
+          guestEmail: m.userEmail ?? '',
+          roomTitle: m.roomTitle ?? 'Cabin Booking',
+          checkIn: m.checkIn,
+          checkOut: m.checkOut,
+          nights,
+          guests: Number(m.guests),
+          nightlyRate,
+          serviceFee,
+          taxes,
+          totalPrice: total,
+          discountAmount,
+          paymentIntentId: paymentIntent.id,
+          paymentType,
+          depositAmount,
+          remainingBalance,
+          ...(m.couponCode ? { couponCode: m.couponCode } : {}),
+          ...(m.specialRequests ? { specialRequests: m.specialRequests } : {}),
+          adminDashboardUrl: `${appUrl}/admin/bookings/${bookingId}`,
+        }).catch((e) => console.error('[webhook] admin email failed:', e)),
+      ]);
+    });
   }
 }

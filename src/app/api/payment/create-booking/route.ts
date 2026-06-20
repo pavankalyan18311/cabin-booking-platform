@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse, after } from 'next/server';
 import stripe from '@/lib/stripe/server';
 import { adminAuth, adminDb } from '@/lib/firebase/admin';
 import { COLLECTIONS } from '@/lib/firebase/collections';
@@ -169,29 +169,59 @@ export async function POST(request: NextRequest) {
       }
     });
 
-    // ── Fire-and-forget email confirmation ────────────────────────────────────
-    if (m.userEmail) {
-      void NotificationService.bookingCreated({
-        to: m.userEmail,
-        guestName: m.userName ?? m.userEmail,
-        bookingId,
-        roomTitle: m.roomTitle ?? 'Cabin Booking',
-        roomLocation: m.roomLocation ?? '',
-        ...(m.roomMapsUrl ? { mapsUrl: m.roomMapsUrl } : {}),
-        checkIn,
-        checkOut,
-        nights,
-        guests: Number(m.guests),
-        nightlyRate,
-        serviceFee,
-        taxes,
-        totalPrice: total,
-        discountAmount,
-        paymentIntentId,
-        ...(m.couponCode ? { couponCode: m.couponCode } : {}),
-        ...(m.specialRequests ? { specialRequests: m.specialRequests } : {}),
-      }).catch((e) => console.error('[create-booking] email notify failed:', e));
-    }
+    // Schedule emails after response — keeps serverless function alive until sent
+    after(async () => {
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? '';
+      await Promise.allSettled([
+        m.userEmail
+          ? NotificationService.bookingCreated({
+              to: m.userEmail,
+              guestName: m.userName ?? m.userEmail,
+              bookingId,
+              roomTitle: m.roomTitle ?? 'Cabin Booking',
+              roomLocation: m.roomLocation ?? '',
+              ...(m.roomMapsUrl ? { mapsUrl: m.roomMapsUrl } : {}),
+              checkIn,
+              checkOut,
+              nights,
+              guests: Number(m.guests),
+              nightlyRate,
+              serviceFee,
+              taxes,
+              totalPrice: total,
+              discountAmount,
+              paymentIntentId,
+              paymentType,
+              depositAmount,
+              remainingBalance,
+              ...(m.couponCode ? { couponCode: m.couponCode } : {}),
+              ...(m.specialRequests ? { specialRequests: m.specialRequests } : {}),
+            }).catch((e) => console.error('[create-booking] guest email failed:', e))
+          : Promise.resolve(),
+        NotificationService.adminBookingAlert({
+          bookingId,
+          guestName: m.userName ?? m.userEmail ?? 'Guest',
+          guestEmail: m.userEmail ?? '',
+          roomTitle: m.roomTitle ?? 'Cabin Booking',
+          checkIn,
+          checkOut,
+          nights,
+          guests: Number(m.guests),
+          nightlyRate,
+          serviceFee,
+          taxes,
+          totalPrice: total,
+          discountAmount,
+          paymentIntentId,
+          paymentType,
+          depositAmount,
+          remainingBalance,
+          ...(m.couponCode ? { couponCode: m.couponCode } : {}),
+          ...(m.specialRequests ? { specialRequests: m.specialRequests } : {}),
+          adminDashboardUrl: `${appUrl}/admin/bookings/${bookingId}`,
+        }).catch((e) => console.error('[create-booking] admin email failed:', e)),
+      ]);
+    });
 
     return NextResponse.json({ bookingId });
   } catch (err: unknown) {

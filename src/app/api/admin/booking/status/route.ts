@@ -3,6 +3,7 @@ import { adminAuth, adminDb } from '@/lib/firebase/admin';
 import { COLLECTIONS } from '@/lib/firebase/collections';
 import { format, eachDayOfInterval, parseISO } from 'date-fns';
 import { NotificationService, type BookingEmailData } from '@/lib/notifications';
+import stripe from '@/lib/stripe/server';
 import type { Booking, BookingStatus } from '@/types';
 
 function buildMapsUrl(coordinates: { lat: number; lng: number } | undefined, location: string): string {
@@ -97,6 +98,20 @@ export async function POST(request: NextRequest) {
       });
     } else {
       await bookingRef.update(statusUpdates);
+    }
+
+    // ── Stripe refund when admin cancels a paid booking ───────────────────────
+    if (status === 'cancelled' && booking.paymentStatus === 'succeeded' && booking.paymentIntentId) {
+      try {
+        await stripe.refunds.create({
+          payment_intent: booking.paymentIntentId as string,
+          reason: 'requested_by_customer',
+        });
+        await bookingRef.update({ paymentStatus: 'refunded', updatedAt: new Date().toISOString() });
+      } catch (refundErr) {
+        console.error('[admin/booking/status] Stripe refund failed — flag for manual review:', refundErr);
+        await bookingRef.update({ refundPending: true, updatedAt: new Date().toISOString() });
+      }
     }
 
     // ── Fire-and-forget notification email ────────────────────────────────────

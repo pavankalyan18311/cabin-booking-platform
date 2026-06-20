@@ -33,12 +33,16 @@ const STATUS_TABS: { value: 'all' | BookingStatus; label: string }[] = [
   { value: 'rejected',  label: 'Rejected'  },
 ];
 
-const PAYMENT_BADGE: Record<PaymentStatus, { label: string; className: string }> = {
-  succeeded: { label: 'Paid',     className: 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' },
-  pending:   { label: 'Unpaid',   className: 'bg-amber-500/20  text-amber-300  border border-amber-500/30'  },
-  failed:    { label: 'Failed',   className: 'bg-red-500/20    text-red-300    border border-red-500/30'    },
-  refunded:  { label: 'Refunded', className: 'bg-sky-500/20    text-sky-300    border border-sky-500/30'    },
-};
+function paymentBadge(status: PaymentStatus | undefined, type: string | undefined): { label: string; className: string } | null {
+  if (status === 'succeeded') {
+    if (type === 'half') return { label: 'Paid in Half',  className: 'bg-orange-500/20 text-orange-300 border border-orange-500/30' };
+    return                        { label: 'Paid in Full', className: 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' };
+  }
+  if (status === 'refunded') return { label: 'Refunded', className: 'bg-sky-500/20 text-sky-300 border border-sky-500/30' };
+  if (status === 'failed')   return { label: 'Failed',   className: 'bg-red-500/20 text-red-300 border border-red-500/30' };
+  if (status === 'pending')  return { label: 'Unpaid',   className: 'bg-amber-500/20 text-amber-300 border border-amber-500/30' };
+  return null;
+}
 
 function CopyButton({ text, label }: { text: string; label?: string }) {
   const [copied, setCopied] = useState(false);
@@ -78,7 +82,7 @@ function BookingSkeleton() {
 }
 
 function BookingCard({ booking, onCancel, onSupport }: { booking: Booking; onCancel: (id: string) => void; onSupport: () => void }) {
-  const payBadge  = booking.paymentStatus ? PAYMENT_BADGE[booking.paymentStatus] : null;
+  const payBadge  = paymentBadge(booking.paymentStatus, booking.paymentType);
   const subtotal  = booking.nightlyRate * booking.nights;
   const canCancel = booking.status === 'pending' || booking.status === 'confirmed';
 

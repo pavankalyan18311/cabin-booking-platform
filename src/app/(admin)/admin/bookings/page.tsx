@@ -23,12 +23,16 @@ import { format, parseISO } from 'date-fns';
 import type { Booking, BookingStatus, PaymentStatus } from '@/types';
 import { toast } from 'sonner';
 
-const PAYMENT_BADGE: Record<PaymentStatus, { label: string; className: string }> = {
-  succeeded: { label: 'Paid',     className: 'bg-emerald-100 text-emerald-800 border-emerald-200' },
-  pending:   { label: 'Unpaid',   className: 'bg-amber-100  text-amber-800  border-amber-200'  },
-  failed:    { label: 'Failed',   className: 'bg-red-100    text-red-800    border-red-200'    },
-  refunded:  { label: 'Refunded', className: 'bg-sky-100    text-sky-800    border-sky-200'    },
-};
+function paymentBadge(status: PaymentStatus | undefined, type: string | undefined): { label: string; className: string } | null {
+  if (status === 'succeeded') {
+    if (type === 'half') return { label: 'Paid in Half',  className: 'bg-orange-100 text-orange-800 border-orange-200' };
+    return                        { label: 'Paid in Full', className: 'bg-emerald-100 text-emerald-800 border-emerald-200' };
+  }
+  if (status === 'refunded') return { label: 'Refunded', className: 'bg-sky-100 text-sky-800 border-sky-200' };
+  if (status === 'failed')   return { label: 'Failed',   className: 'bg-red-100 text-red-800 border-red-200' };
+  if (status === 'pending')  return { label: 'Unpaid',   className: 'bg-amber-100 text-amber-800 border-amber-200' };
+  return null;
+}
 
 function formatBookedAt(iso: string) {
   try {
@@ -101,6 +105,9 @@ export default function AdminBookingsPage() {
   const [rejectId, setRejectId]         = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState('');
   const [rejecting, setRejecting]       = useState(false);
+  const [cancelId, setCancelId]         = useState<string | null>(null);
+  const [cancelReason, setCancelReason] = useState('');
+  const [cancelling, setCancelling]     = useState(false);
   const [refundingId, setRefundingId]   = useState<string | null>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [launching, setLaunching]         = useState(false);
@@ -147,6 +154,22 @@ export default function AdminBookingsPage() {
       toast.error('Failed to reject booking');
     } finally {
       setRejecting(false);
+    }
+  };
+
+  const handleCancel = async () => {
+    if (!cancelId) return;
+    setCancelling(true);
+    try {
+      await updateBookingStatus(cancelId, 'cancelled', cancelReason.trim() || undefined);
+      setBookings((prev) => prev.map((b) => b.id === cancelId ? { ...b, status: 'cancelled' as BookingStatus, paymentStatus: b.paymentStatus === 'succeeded' ? 'refunded' as PaymentStatus : b.paymentStatus } : b));
+      toast.success('Booking cancelled and refund issued');
+      setCancelId(null);
+      setCancelReason('');
+    } catch {
+      toast.error('Failed to cancel booking');
+    } finally {
+      setCancelling(false);
     }
   };
 
@@ -257,7 +280,7 @@ export default function AdminBookingsPage() {
       ) : (
         <div className="space-y-3">
           {filtered.map((b, i) => {
-            const payBadge  = b.paymentStatus ? PAYMENT_BADGE[b.paymentStatus] : null;
+            const payBadge  = paymentBadge(b.paymentStatus, b.paymentType);
             const canRefund = b.paymentStatus === 'succeeded' && (b.status === 'cancelled' || b.status === 'rejected');
             const bookedAt  = formatBookedAt(b.createdAt);
             const guestName = b.userName || b.userEmail?.split('@')[0] || 'Guest';
@@ -290,6 +313,12 @@ export default function AdminBookingsPage() {
                         >
                           {payBadge.label}
                         </Badge>
+                      )}
+                      {b.paymentType === 'half' && b.remainingBalance != null && b.remainingBalance > 0 && (
+                        <span className="inline-flex items-center gap-1 bg-amber-50 text-amber-700 border border-amber-200 rounded-full text-xs px-2 py-0.5">
+                          <DollarSign className="h-2.5 w-2.5 shrink-0" />
+                          {formatCurrency(b.remainingBalance)} due at check-in
+                        </span>
                       )}
                       {b.couponCode && (
                         <span className="inline-flex items-center gap-1 bg-amber-50 text-amber-700 border border-amber-200 rounded-full text-xs px-2 py-0.5 font-mono">
@@ -435,17 +464,35 @@ export default function AdminBookingsPage() {
                         >
                           <XCircle className="h-3.5 w-3.5" /> Reject
                         </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-8 text-xs gap-1.5 px-3 text-stone-600 border-stone-200 hover:bg-stone-50"
+                          onClick={() => setCancelId(b.id)}
+                        >
+                          <XCircle className="h-3.5 w-3.5" /> Cancel
+                        </Button>
                       </>
                     )}
                     {b.status === 'confirmed' && (
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        className="h-8 text-xs px-3"
-                        onClick={() => handleStatusUpdate(b.id, 'completed')}
-                      >
-                        Mark Completed
-                      </Button>
+                      <>
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          className="h-8 text-xs px-3"
+                          onClick={() => handleStatusUpdate(b.id, 'completed')}
+                        >
+                          Mark Completed
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-8 text-xs gap-1.5 px-3 text-red-600 border-red-200 hover:bg-red-50"
+                          onClick={() => setCancelId(b.id)}
+                        >
+                          <XCircle className="h-3.5 w-3.5" /> Cancel & Refund
+                        </Button>
+                      </>
                     )}
                     {canRefund && (
                       <Button
@@ -461,7 +508,7 @@ export default function AdminBookingsPage() {
                         Mark Refunded
                       </Button>
                     )}
-                    {(b.status === 'confirmed' || b.status === 'completed' || b.status === 'cancelled' || b.status === 'rejected') && (
+                    {(b.status === 'completed' || b.status === 'cancelled' || b.status === 'rejected') && (
                       <span className="text-xs text-stone-400 ml-auto">No further actions available</span>
                     )}
                   </div>
@@ -510,6 +557,33 @@ export default function AdminBookingsPage() {
           <div className="rocket-spark-3 fixed bottom-14 right-10 z-49 text-base">⭐</div>
         </div>
       )}
+
+      {/* ── Cancel Dialog ── */}
+      <Dialog open={!!cancelId} onOpenChange={(open) => { if (!open) { setCancelId(null); setCancelReason(''); } }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Cancel Booking</DialogTitle>
+            <DialogDescription>
+              The booking dates will be freed and any Stripe payment will be automatically refunded to the guest.
+            </DialogDescription>
+          </DialogHeader>
+          <Textarea
+            placeholder="Reason for cancellation (optional)"
+            value={cancelReason}
+            onChange={(e) => setCancelReason(e.target.value)}
+            className="mt-2"
+            rows={3}
+          />
+          <div className="flex gap-3 mt-4">
+            <Button variant="outline" className="flex-1" onClick={() => { setCancelId(null); setCancelReason(''); }}>
+              Back
+            </Button>
+            <Button variant="destructive" className="flex-1" onClick={handleCancel} disabled={cancelling}>
+              {cancelling ? 'Cancelling…' : 'Cancel & Refund'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* ── Reject Dialog ── */}
       <Dialog open={!!rejectId} onOpenChange={(open) => { if (!open) { setRejectId(null); setRejectReason(''); } }}>

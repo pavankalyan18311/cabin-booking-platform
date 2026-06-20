@@ -210,7 +210,13 @@ export default function Navbar() {
               <>
                 {/* Desktop */}
                 <Link href="/login" className="hidden lg:block">
-                  <Button variant="ghost" size="sm" className={dark ? '' : 'text-white hover:bg-white/10'}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className={dark
+                      ? 'text-stone-600 hover:text-stone-900 hover:bg-stone-100'
+                      : 'text-white hover:text-white hover:bg-white/15 bg-transparent'}
+                  >
                     Sign In
                   </Button>
                 </Link>
