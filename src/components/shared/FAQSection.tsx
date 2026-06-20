@@ -5,7 +5,7 @@ import { Plus, X } from 'lucide-react';
 
 const faqs = [
   { q:'How do I make a reservation?',         a:"Browse our 7 rentals, pick your cabin, choose your dates, and complete the booking form. You'll receive instant confirmation via email." },
-  { q:'What is your cancellation policy?',    a:'We work with Vacasa as our property management company. Cancellation terms are outlined in your rental agreement at the time of booking. Contact us at 608-350-0800 with any questions.' },
+  { q:'What is your cancellation policy?',    a:'Cancellations can be made directly through your booking on our website. If you need assistance, contact us at 608-350-0800 or email relaxingatcabins@gmail.com and we\'ll be happy to help.' },
   { q:'Are pets allowed?',                    a:'Yes — all 7 rentals at Relaxin Cabins are pet-friendly. Just bring your furry family member and enjoy the property together.' },
   { q:'Is there a minimum stay requirement?', a:'Minimum stay requirements vary by rental and season. Check individual rental listings for specific stay requirements, or call us at 608-350-0800.' },
   { q:'What amenities are included?',         a:'Every rental includes a full kitchen, fire pit, fireplace or stove, private porch, and BBQ grill. The Luxe adds a whirlpool tub and screened porch. The Lodge features a floor-to-ceiling rock fireplace and granite kitchen.' },

@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import {
   Trees, Waves, Home, Utensils, Flame, Wind, Star,
   MapPin, Phone, Mail, CalendarCheck, ShieldCheck, Sparkles,
-  BedDouble, ChevronRight, AlertCircle,
+  ChevronRight, AlertCircle,
 } from 'lucide-react';
 
 export const metadata: Metadata = {
@@ -247,20 +247,6 @@ export default function AboutPage() {
           ))}
         </div>
 
-        {/* Vacasa note */}
-        <div className="mt-10 bg-amber-50 border border-amber-200 rounded-2xl p-6 flex gap-4">
-          <div className="shrink-0 p-2 bg-amber-100 rounded-xl h-fit">
-            <BedDouble className="h-5 w-5 text-amber-700" />
-          </div>
-          <div>
-            <h4 className="font-bold text-stone-900 mb-1">Property Management via Vacasa</h4>
-            <p className="text-stone-600 text-sm leading-relaxed">
-              We currently work with <strong>Vacasa</strong> as our property management company.
-              You may receive check-in and check-out information directly from them — that is completely normal
-              and expected. All bookings, availability, and guest support go through Vacasa.
-            </p>
-          </div>
-        </div>
       </section>
 
       {/* ── COVID Policies ────────────────────────────────────────────────────── */}
