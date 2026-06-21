@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import {
-  CheckCircle, Clock, XCircle, Calendar, Users, MapPin,
+  CheckCircle, Clock, XCircle, Calendar, Users,
   ArrowRight, ArrowLeft, Printer, CreditCard, Tag, Copy, Check, Phone,
   Home, Star,
 } from 'lucide-react';
@@ -308,11 +308,6 @@ export default function BookingConfirmationPage({ params }: { params: Promise<{ 
                   <div className="absolute bottom-3 left-3 right-3 flex items-end justify-between">
                     <div>
                       <p className="text-white font-bold text-sm drop-shadow">{room.title}</p>
-                      {room.location && (
-                        <p className="text-white/70 text-xs flex items-center gap-1">
-                          <MapPin className="h-3 w-3" />{room.location}
-                        </p>
-                      )}
                     </div>
                     {room.rating > 0 && (
                       <div className="flex items-center gap-1 bg-amber-500/90 backdrop-blur-sm rounded-lg px-2 py-1">

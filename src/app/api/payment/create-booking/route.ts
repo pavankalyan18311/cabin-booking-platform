@@ -183,8 +183,6 @@ export async function POST(request: NextRequest) {
               guestName: m.userName ?? m.userEmail,
               bookingId,
               roomTitle: m.roomTitle ?? 'Cabin Booking',
-              roomLocation: m.roomLocation ?? '',
-              ...(m.roomMapsUrl ? { mapsUrl: m.roomMapsUrl } : {}),
               checkIn,
               checkOut,
               nights,

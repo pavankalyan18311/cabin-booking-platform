@@ -6,13 +6,6 @@ import { NotificationService, type BookingEmailData } from '@/lib/notifications'
 import stripe from '@/lib/stripe/server';
 import type { Booking, BookingStatus } from '@/types';
 
-function buildMapsUrl(coordinates: { lat: number; lng: number } | undefined, location: string): string {
-  if (coordinates?.lat && coordinates?.lng) {
-    return `https://www.google.com/maps?q=${coordinates.lat},${coordinates.lng}`;
-  }
-  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location)}`;
-}
-
 const FREES_DATES: BookingStatus[] = ['cancelled', 'rejected'];
 
 export async function POST(request: NextRequest) {
@@ -117,18 +110,11 @@ export async function POST(request: NextRequest) {
     // ── Fire-and-forget notification email ────────────────────────────────────
     const userEmail = booking.userEmail as string | undefined;
     if (userEmail) {
-      const roomSnap = await db.collection(COLLECTIONS.ROOMS).doc(booking.roomId as string).get();
-      const roomData = roomSnap.data();
-      const roomLocation = (roomData?.location as string) ?? '';
-      const mapsUrl = buildMapsUrl(roomData?.coordinates as { lat: number; lng: number } | undefined, roomLocation);
-
       const emailData: BookingEmailData = {
         to: userEmail,
         guestName: (booking.userName as string) || userEmail,
         bookingId: booking.id,
         roomTitle: (booking.roomTitle as string) ?? 'Cabin Booking',
-        roomLocation,
-        mapsUrl,
         checkIn: booking.checkIn as string,
         checkOut: booking.checkOut as string,
         nights: booking.nights as number,

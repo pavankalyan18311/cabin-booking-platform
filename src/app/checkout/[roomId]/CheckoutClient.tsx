@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Elements } from '@stripe/react-stripe-js';
 import { motion } from 'framer-motion';
 import {
-  ArrowLeft, Calendar, Users, MapPin, Star, Shield, Loader2, Zap, CreditCard, Lock,
+  ArrowLeft, Calendar, Users, Star, Shield, Loader2, Zap, CreditCard, Lock,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -245,9 +245,6 @@ export default function CheckoutClient({ room, checkIn, checkOut, guests, specia
                   <div className="flex items-center gap-3 text-xs text-stone-500">
                     <span className="flex items-center gap-1">
                       <Star className="h-3 w-3 fill-amber-500 text-amber-500" />{room.rating.toFixed(1)}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <MapPin className="h-3 w-3 text-amber-500" />{room.location}
                     </span>
                     <Badge variant="secondary" className="capitalize text-xs bg-stone-800 text-stone-400 border-0">
                       {room.category}

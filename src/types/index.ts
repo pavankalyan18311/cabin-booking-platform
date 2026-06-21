@@ -39,8 +39,8 @@ export interface Room {
   maxGuests: number;
   bedrooms: number;
   bathrooms: number;
-  size: number; // sq ft
-  location: string;
+  size?: number;
+  location?: string;
   coordinates?: { lat: number; lng: number };
   images: string[];
   amenities: string[];

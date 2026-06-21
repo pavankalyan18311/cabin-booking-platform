@@ -4,7 +4,7 @@ import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { Heart, MapPin, Star, Bed, Bath, Users, Wrench, Maximize2, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Heart, Star, Bed, Bath, Users, Wrench, Maximize2, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAuthStore, useFavoritesStore } from '@/store';
 import { toggleFavorite } from '@/services/users.service';
 import { formatCurrency } from '@/lib/utils';
@@ -231,12 +231,6 @@ function RoomCard({ room }: { room: Room }) {
             <Star className="h-2.5 w-2.5 fill-current" />
             {room.rating.toFixed(1)}
           </span>
-        </div>
-
-        {/* Location */}
-        <div className="flex items-center gap-1 text-white/45 text-xs mb-2.5">
-          <MapPin className="h-3 w-3 shrink-0" />
-          <span className="truncate">{room.location}</span>
         </div>
 
         {/* Amenities + price */}

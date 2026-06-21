@@ -49,12 +49,10 @@ export default function EditRoomPage({ params }: { params: Promise<{ id: string 
         title:              room.title,
         shortDescription:   room.shortDescription,
         description:        room.description,
-        location:           room.location ?? '',
         category:           room.category,
         maxGuests:          room.maxGuests,
         bedrooms:           room.bedrooms,
         bathrooms:          room.bathrooms,
-        size:               room.size,
         price:              room.price,
         discountPrice:      room.discountPrice,
         images:             room.images ?? [],
@@ -118,38 +116,30 @@ export default function EditRoomPage({ params }: { params: Promise<{ id: string 
               <Textarea placeholder="Detailed description..." rows={5} {...register('description')} />
               {errors.description && <p className="text-xs text-red-500">{errors.description.message}</p>}
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label>Category *</Label>
-                <Controller name="category" control={control} render={({ field }) => (
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger><SelectValue placeholder="Select category" /></SelectTrigger>
-                    <SelectContent>
-                      {['cabin', 'lodge', 'cottage', 'villa', 'chalet'].map((c) => (
-                        <SelectItem key={c} value={c} className="capitalize">{c}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )} />
-              </div>
-              <div className="space-y-1.5">
-                <Label>Location</Label>
-                <Input placeholder="e.g. New Lisbon, WI" {...register('location')} />
-                {errors.location && <p className="text-xs text-red-500">{errors.location.message}</p>}
-              </div>
+            <div className="space-y-1.5">
+              <Label>Category *</Label>
+              <Controller name="category" control={control} render={({ field }) => (
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <SelectTrigger><SelectValue placeholder="Select category" /></SelectTrigger>
+                  <SelectContent>
+                    {['cabin', 'lodge', 'cottage', 'villa', 'chalet'].map((c) => (
+                      <SelectItem key={c} value={c} className="capitalize">{c}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )} />
             </div>
           </CardContent>
         </Card>
 
-        {/* Capacity & Size */}
+        {/* Capacity */}
         <Card>
-          <CardHeader><CardTitle className="text-base">Capacity &amp; Size</CardTitle></CardHeader>
-          <CardContent className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <CardHeader><CardTitle className="text-base">Capacity</CardTitle></CardHeader>
+          <CardContent className="grid grid-cols-3 gap-4">
             {[
-              { label: 'Max Guests', field: 'maxGuests'  as const },
-              { label: 'Bedrooms',   field: 'bedrooms'   as const },
-              { label: 'Bathrooms',  field: 'bathrooms'  as const },
-              { label: 'Size (sq ft)', field: 'size'     as const },
+              { label: 'Max Guests', field: 'maxGuests' as const },
+              { label: 'Bedrooms',   field: 'bedrooms'  as const },
+              { label: 'Bathrooms',  field: 'bathrooms' as const },
             ].map((f) => (
               <div key={f.field} className="space-y-1.5">
                 <Label>{f.label}</Label>

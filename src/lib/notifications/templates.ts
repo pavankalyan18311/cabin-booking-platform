@@ -110,7 +110,7 @@ export interface BookingEmailData {
   guestName: string;
   bookingId: string;
   roomTitle: string;
-  roomLocation: string;
+  roomLocation?: string;
   mapsUrl?: string;
   checkIn: string;
   checkOut: string;
@@ -184,7 +184,7 @@ export function bookingCreatedTemplate(d: BookingEmailData): string {
     <table width="100%" cellpadding="0" cellspacing="0" style="background:#fafaf9;border:1px solid #e7e5e4;border-radius:12px;margin-bottom:20px;">
       <tr><td style="padding:16px 20px;">
         <p style="margin:0 0 4px;font-size:17px;font-weight:700;color:#1c1917;">${d.roomTitle}</p>
-        <p style="margin:0;font-size:13px;color:#78716c;">📍 ${d.roomLocation}</p>
+        ${d.roomLocation ? `<p style="margin:0;font-size:13px;color:#78716c;">📍 ${d.roomLocation}</p>` : ''}
       </td></tr>
     </table>
 
@@ -263,7 +263,7 @@ export function bookingReservedTemplate(d: BookingEmailData): string {
     <table width="100%" cellpadding="0" cellspacing="0" style="background:#fafaf9;border:1px solid #e7e5e4;border-radius:12px;margin-bottom:20px;">
       <tr><td style="padding:16px 20px;">
         <p style="margin:0 0 4px;font-size:17px;font-weight:700;color:#1c1917;">${d.roomTitle}</p>
-        <p style="margin:0;font-size:13px;color:#78716c;">📍 ${d.roomLocation}</p>
+        ${d.roomLocation ? `<p style="margin:0;font-size:13px;color:#78716c;">📍 ${d.roomLocation}</p>` : ''}
       </td></tr>
     </table>
 
@@ -302,7 +302,7 @@ export function bookingConfirmedTemplate(d: BookingEmailData): string {
     <table width="100%" cellpadding="0" cellspacing="0" style="background:#fafaf9;border:1px solid #e7e5e4;border-radius:12px;margin-bottom:20px;">
       <tr><td style="padding:16px 20px;">
         <p style="margin:0 0 4px;font-size:17px;font-weight:700;color:#1c1917;">${d.roomTitle}</p>
-        <p style="margin:0;font-size:13px;color:#78716c;">📍 ${d.roomLocation}</p>
+        ${d.roomLocation ? `<p style="margin:0;font-size:13px;color:#78716c;">📍 ${d.roomLocation}</p>` : ''}
       </td></tr>
     </table>
 
@@ -376,7 +376,7 @@ export function bookingCompletedTemplate(d: BookingEmailData): string {
     <table width="100%" cellpadding="0" cellspacing="0" style="background:#fafaf9;border:1px solid #e7e5e4;border-radius:12px;margin-bottom:20px;">
       <tr><td style="padding:16px 20px;">
         <p style="margin:0 0 4px;font-size:15px;font-weight:600;color:#1c1917;">${d.roomTitle}</p>
-        <p style="margin:0;font-size:13px;color:#78716c;">📍 ${d.roomLocation} · ${d.nights} night${d.nights !== 1 ? 's' : ''}</p>
+        <p style="margin:0;font-size:13px;color:#78716c;">${d.nights} night${d.nights !== 1 ? 's' : ''}</p>
         <p style="margin:4px 0 0;font-size:12px;color:#a8a29e;">Booking: <span style="font-family:monospace;">${d.bookingId}</span></p>
       </td></tr>
     </table>

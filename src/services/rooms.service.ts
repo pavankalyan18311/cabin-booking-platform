@@ -134,7 +134,6 @@ export async function searchRooms(searchQuery: string): Promise<Room[]> {
       (r) =>
         r.isAvailable !== false && (
           r.title.toLowerCase().includes(lower) ||
-          r.location.toLowerCase().includes(lower) ||
           r.description.toLowerCase().includes(lower)
         )
     );

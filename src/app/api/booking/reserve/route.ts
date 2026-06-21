@@ -6,12 +6,7 @@ import { format, eachDayOfInterval, parseISO } from 'date-fns';
 import type { Booking } from '@/types';
 import { NotificationService } from '@/lib/notifications';
 
-function buildMapsUrl(coordinates: { lat: number; lng: number } | undefined, location: string): string {
-  if (coordinates?.lat && coordinates?.lng) {
-    return `https://www.google.com/maps?q=${coordinates.lat},${coordinates.lng}`;
-  }
-  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location)}`;
-}
+
 
 export async function POST(request: NextRequest) {
   try {
@@ -137,8 +132,6 @@ export async function POST(request: NextRequest) {
         guestName: userName || userEmail,
         bookingId,
         roomTitle: room.title as string,
-        roomLocation: (room.location as string) ?? '',
-        mapsUrl: buildMapsUrl(room.coordinates as { lat: number; lng: number } | undefined, room.location as string),
         checkIn,
         checkOut,
         nights,

@@ -4,7 +4,7 @@ import { createPortal } from 'react-dom';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import {
-  MapPin, Users, Bed, Bath, Star, Share2, ChevronLeft, ChevronRight, Maximize, Maximize2, X,
+  Users, Bed, Bath, Star, Share2, ChevronLeft, ChevronRight, Maximize2, X,
   Wifi, Flame, Droplets, TreePine, Dog, ChefHat, Car, Mountain, Check, Loader2, ArrowLeft,
   Tv, Coffee, Wind, Home, Thermometer, WashingMachine, UtensilsCrossed, Shirt, Hotel,
 } from 'lucide-react';
@@ -218,10 +218,6 @@ export default function RoomDetailClient({ room, bookedDates, reviews }: Props) 
               <Star className="h-3 w-3 fill-current" />
               {room.rating.toFixed(1)} · {room.reviewCount} reviews
             </span>
-            <span className="flex items-center gap-1 text-white/70">
-              <MapPin className="h-3.5 w-3.5 text-amber-400" />
-              {room.location}
-            </span>
           </div>
         </div>
       </div>
@@ -249,12 +245,11 @@ export default function RoomDetailClient({ room, bookedDates, reviews }: Props) 
           <div className="lg:col-span-2 space-y-8">
 
             {/* Quick stats */}
-            <div className="grid grid-cols-4 gap-3">
+            <div className="grid grid-cols-3 gap-3">
               {[
-                { icon: Users, label: 'Guests', value: room.maxGuests },
-                { icon: Bed, label: 'Bedrooms', value: room.bedrooms },
-                { icon: Bath, label: 'Bathrooms', value: room.bathrooms },
-                { icon: Maximize, label: 'Sq ft', value: room.size ? room.size.toLocaleString() : '—' },
+                { icon: Users, label: 'Guests',    value: room.maxGuests },
+                { icon: Bed,   label: 'Bedrooms',  value: room.bedrooms },
+                { icon: Bath,  label: 'Bathrooms', value: room.bathrooms },
               ].map((s) => (
                 <div key={s.label} className="text-center p-4 bg-[#132E1C] border border-[#1F4A2D] rounded-2xl">
                   <s.icon className="h-5 w-5 text-amber-500 mx-auto mb-2" />

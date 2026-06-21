@@ -39,8 +39,7 @@ export default function AdminRoomsPage() {
 
   const filtered = rooms.filter((r) => {
     const matchesSearch =
-      r.title.toLowerCase().includes(search.toLowerCase()) ||
-      r.location.toLowerCase().includes(search.toLowerCase());
+      r.title.toLowerCase().includes(search.toLowerCase());
     const matchesAvail =
       availFilter === 'all' ||
       (availFilter === 'enabled' ? r.isAvailable !== false : r.isAvailable === false);
@@ -254,8 +253,7 @@ export default function AdminRoomsPage() {
                             <Badge className="hidden sm:inline-flex bg-red-100 text-red-800 border border-red-200 text-[10px] px-1.5 py-0 h-4">Disabled</Badge>
                           )}
                         </div>
-                        <p className="text-xs text-stone-500 truncate">{room.location}</p>
-                        <p className="text-xs text-stone-400 mt-0.5 hidden sm:block">
+                        <p className="text-xs text-stone-400 mt-0.5">
                           {room.maxGuests} guests · {room.bedrooms} bed · {room.bathrooms} bath
                         </p>
                       </div>

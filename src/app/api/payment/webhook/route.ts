@@ -176,8 +176,6 @@ async function handlePaymentSucceeded(paymentIntent: Stripe.PaymentIntent) {
               guestName: m.userName ?? m.userEmail,
               bookingId,
               roomTitle: m.roomTitle ?? 'Cabin Booking',
-              roomLocation: m.roomLocation ?? '',
-              ...(m.roomMapsUrl ? { mapsUrl: m.roomMapsUrl } : {}),
               checkIn: m.checkIn,
               checkOut: m.checkOut,
               nights,

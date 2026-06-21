@@ -8,13 +8,6 @@ import { parseISO, eachDayOfInterval, format } from 'date-fns';
 
 const HALF_RATE = 0.50;
 
-function buildMapsUrl(coordinates: { lat: number; lng: number } | undefined, location: string): string {
-  if (coordinates?.lat && coordinates?.lng) {
-    return `https://www.google.com/maps?q=${coordinates.lat},${coordinates.lng}`;
-  }
-  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location)}`;
-}
-
 function calcChargeAmount(total: number, paymentType: PaymentType): number {
   if (paymentType === 'half') return Math.round(total * HALF_RATE * 100) / 100;
   return total;
@@ -143,9 +136,7 @@ export async function POST(request: NextRequest) {
       metadata: {
         roomId,
         roomTitle: room.title as string,
-        roomLocation: (room.location as string) ?? '',
         roomImage: (room.images as string[])?.[0] ?? '',
-        roomMapsUrl: buildMapsUrl(room.coordinates as { lat: number; lng: number } | undefined, room.location as string),
         userId,
         userEmail: userData?.email ?? decoded.email ?? '',
         userName: userData?.displayName ?? decoded.name ?? '',

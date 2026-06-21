@@ -49,8 +49,6 @@ export const roomSchema = z.object({
   maxGuests: z.number().min(1),
   bedrooms: z.number().min(1),
   bathrooms: z.number().min(1),
-  size: z.number().min(1).optional(),
-  location: z.string().optional(),
   category: z.enum(['cabin', 'lodge', 'cottage', 'villa', 'chalet']),
   images: z.array(z.url('Each image must be a valid URL')).min(1, 'Add at least one image URL'),
   amenities: z.array(z.string()).min(1, 'Select at least one amenity'),
