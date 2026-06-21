@@ -4,7 +4,6 @@ import {
   getDocs,
   getDoc,
   addDoc,
-  updateDoc,
   deleteDoc,
   query,
   where,
@@ -13,9 +12,8 @@ import {
   startAfter,
   QueryDocumentSnapshot,
   DocumentData,
-  deleteField,
 } from 'firebase/firestore';
-import { db } from '@/lib/firebase/config';
+import { db, auth } from '@/lib/firebase/config';
 import { COLLECTIONS } from '@/lib/firebase/collections';
 import type { Room, SearchFilters } from '@/types';
 import { generateSlug } from '@/lib/utils';
@@ -102,13 +100,23 @@ export async function createRoom(
 }
 
 export async function updateRoom(id: string, data: Partial<Room>): Promise<void> {
-  const payload: Record<string, unknown> = { updatedAt: new Date().toISOString() };
-  for (const [key, value] of Object.entries(data)) {
-    payload[key] = (value === undefined || (typeof value === 'number' && isNaN(value)))
-      ? deleteField()
-      : value;
+  const user = auth.currentUser;
+  if (!user) throw new Error('Not authenticated');
+  const token = await user.getIdToken();
+
+  const res = await fetch(`/api/admin/rooms/${id}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error((err as { error?: string }).error ?? 'Failed to update room');
   }
-  await updateDoc(doc(db, COLLECTIONS.ROOMS, id), payload);
 }
 
 export async function deleteRoom(id: string): Promise<void> {

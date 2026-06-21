@@ -46,23 +46,23 @@ export default function EditRoomPage({ params }: { params: Promise<{ id: string 
     getRoomById(id).then((room: Room | null) => {
       if (!room) { toast.error('Room not found'); router.push('/admin/rooms'); return; }
       reset({
-        title: room.title,
-        shortDescription: room.shortDescription,
-        description: room.description,
-        location: room.location,
-        category: room.category,
-        maxGuests: room.maxGuests,
-        bedrooms: room.bedrooms,
-        bathrooms: room.bathrooms,
-        size: room.size,
-        price: room.price,
-        discountPrice: room.discountPrice,
-        images: room.images,
-        amenities: room.amenities,
-        isFeatured: room.isFeatured,
-        isAvailable: room.isAvailable,
+        title:              room.title,
+        shortDescription:   room.shortDescription,
+        description:        room.description,
+        location:           room.location ?? '',
+        category:           room.category,
+        maxGuests:          room.maxGuests,
+        bedrooms:           room.bedrooms,
+        bathrooms:          room.bathrooms,
+        size:               room.size,
+        price:              room.price,
+        discountPrice:      room.discountPrice,
+        images:             room.images ?? [],
+        amenities:          room.amenities ?? [],
+        isFeatured:         room.isFeatured ?? false,
+        isAvailable:        room.isAvailable ?? true,
         isUnderMaintenance: room.isUnderMaintenance ?? false,
-        tags: room.tags ?? [],
+        tags:               room.tags ?? [],
       });
     }).finally(() => setLoadingRoom(false));
   }, [id, reset, router]);
@@ -118,30 +118,38 @@ export default function EditRoomPage({ params }: { params: Promise<{ id: string 
               <Textarea placeholder="Detailed description..." rows={5} {...register('description')} />
               {errors.description && <p className="text-xs text-red-500">{errors.description.message}</p>}
             </div>
-            <div className="space-y-1.5">
-              <Label>Category *</Label>
-              <Controller name="category" control={control} render={({ field }) => (
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger><SelectValue placeholder="Select category" /></SelectTrigger>
-                  <SelectContent>
-                    {['cabin', 'lodge', 'cottage', 'villa', 'chalet'].map((c) => (
-                      <SelectItem key={c} value={c} className="capitalize">{c}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )} />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label>Category *</Label>
+                <Controller name="category" control={control} render={({ field }) => (
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger><SelectValue placeholder="Select category" /></SelectTrigger>
+                    <SelectContent>
+                      {['cabin', 'lodge', 'cottage', 'villa', 'chalet'].map((c) => (
+                        <SelectItem key={c} value={c} className="capitalize">{c}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Location</Label>
+                <Input placeholder="e.g. New Lisbon, WI" {...register('location')} />
+                {errors.location && <p className="text-xs text-red-500">{errors.location.message}</p>}
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Capacity */}
+        {/* Capacity & Size */}
         <Card>
-          <CardHeader><CardTitle className="text-base">Capacity</CardTitle></CardHeader>
-          <CardContent className="grid grid-cols-3 gap-4">
+          <CardHeader><CardTitle className="text-base">Capacity &amp; Size</CardTitle></CardHeader>
+          <CardContent className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {[
-              { label: 'Max Guests', field: 'maxGuests' as const },
-              { label: 'Bedrooms',   field: 'bedrooms'  as const },
-              { label: 'Bathrooms',  field: 'bathrooms' as const },
+              { label: 'Max Guests', field: 'maxGuests'  as const },
+              { label: 'Bedrooms',   field: 'bedrooms'   as const },
+              { label: 'Bathrooms',  field: 'bathrooms'  as const },
+              { label: 'Size (sq ft)', field: 'size'     as const },
             ].map((f) => (
               <div key={f.field} className="space-y-1.5">
                 <Label>{f.label}</Label>
@@ -164,6 +172,7 @@ export default function EditRoomPage({ params }: { params: Promise<{ id: string 
             <div className="space-y-1.5">
               <Label>Discount Price (optional)</Label>
               <Input type="number" min={1} placeholder="249" {...register('discountPrice', { valueAsNumber: true })} />
+              {errors.discountPrice && <p className="text-xs text-red-500">{errors.discountPrice.message}</p>}
             </div>
           </CardContent>
         </Card>
@@ -213,33 +222,21 @@ export default function EditRoomPage({ params }: { params: Promise<{ id: string 
         <Card>
           <CardHeader><CardTitle className="text-base">Settings</CardTitle></CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <Label>Available for Booking</Label>
-                <p className="text-xs text-stone-400">Make this property visible and bookable</p>
+            {[
+              { name: 'isAvailable'        as const, label: 'Available for Booking',  sub: 'Make this property visible and bookable',                      cls: '' },
+              { name: 'isFeatured'         as const, label: 'Featured Property',       sub: 'Show on homepage featured section',                           cls: '' },
+              { name: 'isUnderMaintenance' as const, label: 'Under Maintenance',       sub: 'Show as temporarily closed — still visible but not bookable', cls: 'text-amber-700' },
+            ].map((s) => (
+              <div key={s.name} className="flex items-center justify-between">
+                <div>
+                  <Label className={s.cls}>{s.label}</Label>
+                  <p className="text-xs text-stone-400">{s.sub}</p>
+                </div>
+                <Controller name={s.name} control={control} render={({ field }) => (
+                  <Switch checked={field.value} onCheckedChange={field.onChange} />
+                )} />
               </div>
-              <Controller name="isAvailable" control={control} render={({ field }) => (
-                <Switch checked={field.value} onCheckedChange={field.onChange} />
-              )} />
-            </div>
-            <div className="flex items-center justify-between">
-              <div>
-                <Label>Featured Property</Label>
-                <p className="text-xs text-stone-400">Show on homepage featured section</p>
-              </div>
-              <Controller name="isFeatured" control={control} render={({ field }) => (
-                <Switch checked={field.value} onCheckedChange={field.onChange} />
-              )} />
-            </div>
-            <div className="flex items-center justify-between">
-              <div>
-                <Label className="text-amber-700">Under Maintenance</Label>
-                <p className="text-xs text-stone-400">Show as temporarily closed — still visible but not bookable</p>
-              </div>
-              <Controller name="isUnderMaintenance" control={control} render={({ field }) => (
-                <Switch checked={field.value} onCheckedChange={field.onChange} />
-              )} />
-            </div>
+            ))}
           </CardContent>
         </Card>
 
