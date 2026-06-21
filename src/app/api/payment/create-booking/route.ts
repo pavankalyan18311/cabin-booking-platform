@@ -71,6 +71,7 @@ export async function POST(request: NextRequest) {
     }
 
     let bookingId = '';
+    let wasCreated = false;
 
     // ── Firestore transaction: idempotency + room guard + booking create + availability update ──
     // The lock doc (paymentIntentId as key) makes idempotency atomic — no race condition possible.
@@ -134,6 +135,7 @@ export async function POST(request: NextRequest) {
 
       const bookingRef = db.collection(COLLECTIONS.BOOKINGS).doc();
       bookingId = bookingRef.id;
+      wasCreated = true;
       tx.set(bookingRef, booking);
       tx.set(lockRef, { bookingId, createdAt: now });
 
@@ -169,8 +171,10 @@ export async function POST(request: NextRequest) {
       }
     });
 
-    // Schedule emails after response — keeps serverless function alive until sent
+    // Only send emails when this route actually created the booking.
+    // If the lock already existed (webhook was faster), the webhook already sent emails.
     after(async () => {
+      if (!wasCreated) return;
       const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? '';
       await Promise.allSettled([
         m.userEmail

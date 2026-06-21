@@ -69,6 +69,7 @@ async function handlePaymentSucceeded(paymentIntent: Stripe.PaymentIntent) {
     .map((d) => format(d, 'yyyy-MM-dd'));
 
   let bookingId = '';
+  let wasCreated = false;
 
   try {
     // Pre-fetch coupon ref outside transaction so we can use it inside
@@ -125,6 +126,7 @@ async function handlePaymentSucceeded(paymentIntent: Stripe.PaymentIntent) {
 
       const bookingRef = db.collection(COLLECTIONS.BOOKINGS).doc();
       bookingId = bookingRef.id;
+      wasCreated = true;
       tx.set(bookingRef, booking);
       tx.set(lockRef, { bookingId, createdAt: now });
 
@@ -164,7 +166,7 @@ async function handlePaymentSucceeded(paymentIntent: Stripe.PaymentIntent) {
     return;
   }
 
-  if (bookingId) {
+  if (bookingId && wasCreated) {
     after(async () => {
       const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? '';
       await Promise.allSettled([
