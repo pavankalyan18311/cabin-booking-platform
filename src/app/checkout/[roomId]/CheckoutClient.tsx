@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -46,17 +46,23 @@ export default function CheckoutClient({ room, checkIn, checkOut, guests, specia
   const [loadingIntent,    setLoadingIntent]    = useState(true);
   const [intentError,      setIntentError]      = useState<string | null>(null);
   const [handlingRedirect, setHandlingRedirect] = useState(false);
+  const latestCallRef = useRef(0);
 
   const initPaymentIntent = useCallback(async (type: PaymentType, couponCode?: string) => {
-    setLoadingIntent(true); setIntentError(null);
+    const callId = ++latestCallRef.current;
+    setLoadingIntent(true); setIntentError(null); setClientSecret(null);
     try {
       const result = await createPaymentIntent({ roomId: room.id, checkIn, checkOut, guests, specialRequests, couponCode, paymentType: type });
+      if (callId !== latestCallRef.current) return;
       setClientSecret(result.clientSecret);
       setBreakdown(result.breakdown);
     } catch (e: unknown) {
+      if (callId !== latestCallRef.current) return;
       const msg = (e as Error).message ?? 'Failed to initialise payment';
       setIntentError(msg); toast.error(msg);
-    } finally { setLoadingIntent(false); }
+    } finally {
+      if (callId === latestCallRef.current) setLoadingIntent(false);
+    }
   }, [room.id, checkIn, checkOut, guests, specialRequests]);
 
   useEffect(() => {
@@ -195,7 +201,7 @@ export default function CheckoutClient({ room, checkIn, checkOut, guests, specia
                     </Button>
                   </div>
                 ) : clientSecret && breakdown ? (
-                  <Elements stripe={getStripe()} options={{
+                  <Elements key={clientSecret} stripe={getStripe()} options={{
                     clientSecret,
                     appearance: {
                       theme: 'night',

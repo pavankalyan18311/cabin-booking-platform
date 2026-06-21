@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { adminAuth, adminDb } from '@/lib/firebase/admin';
+import { adminAuth, adminDb, adminStorage } from '@/lib/firebase/admin';
 import { COLLECTIONS } from '@/lib/firebase/collections';
 
 const MAX_SIZE = 10 * 1024 * 1024; // 10 MB
-const BUCKET   = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET!;
 
 export async function POST(request: NextRequest) {
   try {
@@ -28,58 +27,24 @@ export async function POST(request: NextRequest) {
     if (!file.type.startsWith('image/')) return NextResponse.json({ error: 'Only image files are allowed' }, { status: 400 });
     if (file.size > MAX_SIZE)            return NextResponse.json({ error: 'File exceeds the 10 MB limit' }, { status: 400 });
 
-    const ext           = file.name.split('.').pop()?.toLowerCase() ?? 'jpg';
-    const path          = `rooms/${crypto.randomUUID()}.${ext}`;
-    const downloadToken = crypto.randomUUID();
-    const fileBuffer    = Buffer.from(await file.arrayBuffer());
+    const ext        = file.name.split('.').pop()?.toLowerCase() ?? 'jpg';
+    const path       = `rooms/${crypto.randomUUID()}.${ext}`;
+    const token      = crypto.randomUUID();
+    const fileBuffer = Buffer.from(await file.arrayBuffer());
 
-    // ── Step 1: Simple media upload ───────────────────────────────────────────
-    // Uses the user's Firebase ID token with Authorization: Firebase header —
-    // same scheme as the client SDK. Calling from the server avoids CORS.
-    // Simple upload (not multipart) keeps the request as small as possible.
-    const uploadRes = await fetch(
-      `https://firebasestorage.googleapis.com/v0/b/${encodeURIComponent(BUCKET)}/o` +
-      `?uploadType=media&name=${encodeURIComponent(path)}`,
-      {
-        method:  'POST',
-        headers: {
-          'Content-Type':  file.type,
-          'Authorization': `Firebase ${idToken}`,
-        },
-        body: fileBuffer,
+    // ── Upload via Admin SDK — sets download token atomically ─────────────────
+    const bucket  = adminStorage().bucket();
+    const fileRef = bucket.file(path);
+    await fileRef.save(fileBuffer, {
+      metadata: {
+        contentType: file.type,
+        metadata: { firebaseStorageDownloadTokens: token },
       },
-    );
-
-    if (!uploadRes.ok) {
-      const errText = await uploadRes.text();
-      console.error('[upload] upload error:', uploadRes.status, errText);
-      throw new Error(`Storage upload failed (${uploadRes.status}): ${errText}`);
-    }
-
-    // ── Step 2: Patch metadata to set the Firebase download token ─────────────
-    // Without this, the object is only accessible via rules-enforced reads.
-    // The token makes it directly accessible via ?alt=media&token=...
-    const patchRes = await fetch(
-      `https://firebasestorage.googleapis.com/v0/b/${encodeURIComponent(BUCKET)}/o/${encodeURIComponent(path)}`,
-      {
-        method:  'PATCH',
-        headers: {
-          'Content-Type':  'application/json',
-          'Authorization': `Firebase ${idToken}`,
-        },
-        body: JSON.stringify({
-          metadata: { firebaseStorageDownloadTokens: downloadToken },
-        }),
-      },
-    );
-
-    if (!patchRes.ok) {
-      console.warn('[upload] metadata patch failed (non-fatal):', patchRes.status);
-    }
+    });
 
     const downloadUrl =
-      `https://firebasestorage.googleapis.com/v0/b/${encodeURIComponent(BUCKET)}/o/` +
-      `${encodeURIComponent(path)}?alt=media&token=${downloadToken}`;
+      `https://firebasestorage.googleapis.com/v0/b/${encodeURIComponent(bucket.name)}/o/` +
+      `${encodeURIComponent(path)}?alt=media&token=${token}`;
 
     return NextResponse.json({ url: downloadUrl });
   } catch (err) {
