@@ -2,7 +2,7 @@
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import SearchBar from '@/components/rooms/SearchBar';
-import { ChevronDown, Star } from 'lucide-react';
+import { Star } from 'lucide-react';
 
 const BG = 'https://images.unsplash.com/photo-1510798831971-661eb04b3739?w=1920&q=85';
 
@@ -43,7 +43,7 @@ export default function Hero() {
 
         <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.28 }}
           className="text-white/70 text-lg sm:text-xl max-w-2xl mx-auto mb-4 leading-relaxed font-light">
-          Handpicked luxury cabins, mountain retreats &amp; lakeside escapes.
+          Where the forest breathes and time slows — escapes so beautiful, the real world feels miles away.
           <strong className="font-semibold text-white/95"> Your perfect hideaway awaits.</strong>
         </motion.p>
 
@@ -52,7 +52,7 @@ export default function Hero() {
           {Array.from({ length: 5 }).map((_, i) => (
             <Star key={i} className="h-4 w-4 fill-amber-400 text-amber-400" />
           ))}
-          <span className="text-white/55 text-sm ml-2">4.9 · Trusted by 50,000+ guests</span>
+          <span className="text-white/55 text-sm ml-2">4.9 · Guest Rating</span>
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.42 }}>
@@ -61,7 +61,7 @@ export default function Hero() {
 
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.65 }}
           className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
-          {['No booking fees', 'Free cancellation', 'Instant confirmation', '24/7 support'].map((label) => (
+          {['No booking fees', 'Secure checkout', 'Instant confirmation', '24/7 support'].map((label) => (
             <span key={label} className="flex items-center gap-1.5 text-white/45 text-xs sm:text-sm">
               <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
               {label}
@@ -69,14 +69,6 @@ export default function Hero() {
           ))}
         </motion.div>
       </div>
-
-      <motion.button type="button"
-        onClick={() => window.scrollBy({ top: window.innerHeight, behavior: 'smooth' })}
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1.5 text-white/35 hover:text-white/65 transition-colors"
-        animate={{ y: [0, 8, 0] }} transition={{ duration: 2.2, repeat: Infinity }}>
-        <span className="text-[10px] font-medium tracking-[0.2em] uppercase">Explore</span>
-        <ChevronDown className="h-5 w-5" />
-      </motion.button>
     </section>
   );
 }

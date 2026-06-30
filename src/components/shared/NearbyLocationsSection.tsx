@@ -30,20 +30,14 @@ export default function NearbyLocationsSection() {
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
           className="mb-14">
-          <div className="flex items-center gap-2 mb-4">
-            <div className="p-1.5 bg-amber-600/20 border border-amber-600/30 rounded-lg">
-              <MapPin className="h-4 w-4 text-amber-500" />
-            </div>
-            <span className="text-amber-500 text-xs font-bold uppercase tracking-widest">Around you</span>
-          </div>
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
             <div>
               <h2 className="text-4xl md:text-5xl font-black text-white tracking-tight leading-none">
-                Close to
-                <span className="bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent"> Everything</span>
+                The World Is Closer
+                <span className="block bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent">Than You Think</span>
               </h2>
               <p className="text-stone-500 mt-3 text-sm max-w-md">
-                All the essentials and attractions are minutes from your door.
+                Leave everything behind — but never too far. Adventure, dining, and hidden gems are just minutes from your door.
               </p>
             </div>
             <p className="text-xs text-stone-600">All distances from the cabin</p>
@@ -96,7 +90,7 @@ export default function NearbyLocationsSection() {
                       {loc.name}
                     </p>
                     <p className="text-xs text-stone-600 group-hover:text-amber-600/80 transition-colors duration-300">
-                      {loc.approxTime}
+                      {/min|hr|hour|walk|drive/.test(loc.approxTime) ? loc.approxTime : `${loc.approxTime} min`}
                     </p>
                   </div>
 

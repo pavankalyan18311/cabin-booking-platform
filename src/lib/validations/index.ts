@@ -37,10 +37,14 @@ export const bookingSchema = z.object({
   path: ['checkOut'],
 });
 
+const optionalCount = z.preprocess(
+  (val) => (val === '' || val === null || val === undefined || (typeof val === 'number' && isNaN(val)) ? undefined : Number(val)),
+  z.number().int().positive().optional()
+);
+
 export const roomSchema = z.object({
   title: z.string().min(5, 'Title must be at least 5 characters'),
-  description: z.string().min(50, 'Description must be at least 50 characters'),
-  shortDescription: z.string().min(20).max(200),
+  description: z.string().min(10, 'Description must be at least 10 characters'),
   price: z.number().min(1, 'Price must be greater than 0'),
   discountPrice: z.preprocess(
     (val) => (val === '' || val === null || val === undefined || (typeof val === 'number' && isNaN(val)) ? undefined : Number(val)),
@@ -49,8 +53,19 @@ export const roomSchema = z.object({
   maxGuests: z.number().min(1),
   bedrooms: z.number().min(1),
   bathrooms: z.number().min(1),
+  toilets: optionalCount,
+  balconies: optionalCount,
+  kitchens: optionalCount,
+  diningRooms: optionalCount,
+  livingRooms: optionalCount,
+  queensizeBeds: optionalCount,
+  sofaBeds: optionalCount,
+  foldawayBeds: optionalCount,
+  loftBeds: optionalCount,
+  kingsizeBeds: optionalCount,
+  terraces: optionalCount,
   category: z.enum(['cabin', 'lodge', 'cottage', 'villa', 'chalet']),
-  images: z.array(z.url('Each image must be a valid URL')).min(1, 'Add at least one image URL'),
+  images: z.array(z.string().min(1)).min(1, 'Add at least one image'),
   amenities: z.array(z.string()).min(1, 'Select at least one amenity'),
   isFeatured: z.boolean().default(false),
   isAvailable: z.boolean().default(true),

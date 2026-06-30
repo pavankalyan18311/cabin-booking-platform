@@ -248,14 +248,9 @@ export default function BookingsPage() {
         cancelledAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         cancellationReason: reason,
-        ...(data.refunded ? { paymentStatus: 'refunded' as const } : {}),
       });
 
-      if (data.refunded) {
-        toast.success('Booking cancelled — your refund will appear in 3–5 business days.');
-      } else {
-        toast.success('Booking cancelled successfully.');
-      }
+      toast.success('Booking cancelled. Per our policy, payments already made are non-refundable.');
       closeCancelDialog();
     } catch (err: unknown) {
       toast.error((err as Error).message ?? 'Failed to cancel booking');
@@ -384,7 +379,10 @@ export default function BookingsPage() {
                   </label>
                   <Textarea placeholder="e.g. Change of plans…" value={cancelReason} onChange={(e) => setCancelReason(e.target.value)} rows={2} className="resize-none text-sm" />
                 </div>
-                <p className="text-xs text-stone-400">This action cannot be undone. Contact support to arrange a refund if applicable.</p>
+                <div className="bg-red-50 border border-red-100 rounded-lg p-2.5">
+                  <p className="text-xs text-red-700 font-medium">This booking is non-refundable.</p>
+                  <p className="text-xs text-red-600/80 mt-0.5">Cancelling will not refund any amount already paid. This action cannot be undone.</p>
+                </div>
               </div>
             </DialogDescription>
           </DialogHeader>

@@ -7,6 +7,7 @@ import { Elements } from '@stripe/react-stripe-js';
 import { motion } from 'framer-motion';
 import {
   ArrowLeft, Calendar, Users, Star, Shield, Loader2, Zap, CreditCard, Lock,
+  CalendarClock, Ban, ShieldOff,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -325,6 +326,44 @@ export default function CheckoutClient({ room, checkIn, checkOut, guests, specia
                       {[1,2,3,4].map(i => <div key={i} className="h-4 bg-stone-800 rounded animate-pulse" />)}
                     </div>
                   )}
+                </div>
+
+                {/* Policies */}
+                <div className="px-5 pt-2 pb-5">
+                  <div className="rounded-xl border border-[#1F4A2D]/70 overflow-hidden">
+                    <div className="px-4 py-2.5 bg-[#091510]/80 border-b border-[#1F4A2D]/50">
+                      <p className="text-[10px] font-bold text-stone-500 uppercase tracking-widest">Booking Policies</p>
+                    </div>
+                    <div className="divide-y divide-[#1F4A2D]/40">
+                      <div className="flex items-start gap-3 px-4 py-3">
+                        <div className="shrink-0 w-7 h-7 rounded-lg bg-amber-500/15 border border-amber-500/20 flex items-center justify-center mt-0.5">
+                          <CalendarClock className="h-3.5 w-3.5 text-amber-400" />
+                        </div>
+                        <div>
+                          <p className="text-stone-200 font-semibold text-xs">Payment Schedule</p>
+                          <p className="text-stone-500 text-xs mt-0.5 leading-relaxed">50% due now · remaining balance due <span className="text-amber-400">1 day before arrival</span></p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3 px-4 py-3">
+                        <div className="shrink-0 w-7 h-7 rounded-lg bg-red-500/15 border border-red-500/20 flex items-center justify-center mt-0.5">
+                          <Ban className="h-3.5 w-3.5 text-red-400" />
+                        </div>
+                        <div>
+                          <p className="text-stone-200 font-semibold text-xs">Cancellation</p>
+                          <p className="text-stone-500 text-xs mt-0.5 leading-relaxed">All paid prepayments are <span className="text-red-400">non-refundable</span></p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3 px-4 py-3">
+                        <div className="shrink-0 w-7 h-7 rounded-lg bg-emerald-500/15 border border-emerald-500/20 flex items-center justify-center mt-0.5">
+                          <ShieldOff className="h-3.5 w-3.5 text-emerald-400" />
+                        </div>
+                        <div>
+                          <p className="text-stone-200 font-semibold text-xs">Security Deposit</p>
+                          <p className="text-stone-500 text-xs mt-0.5 leading-relaxed"><span className="text-emerald-400">No deposit</span> required</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </motion.div>

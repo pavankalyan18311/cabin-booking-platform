@@ -68,10 +68,10 @@ export default function AdminRoomsPage() {
     try {
       await deleteRoom(deleteId);
       setRooms((r) => r.filter((room) => room.id !== deleteId));
-      toast.success('Room deleted');
+      toast.success('Cabin deleted');
       setDeleteId(null);
     } catch {
-      toast.error('Failed to delete room');
+      toast.error('Failed to delete cabin');
     } finally {
       setDeleting(false);
     }
@@ -83,9 +83,9 @@ export default function AdminRoomsPage() {
     try {
       await updateRoom(room.id, { isAvailable: next });
       setRooms((prev) => prev.map((r) => r.id === room.id ? { ...r, isAvailable: next } : r));
-      toast.success(`Room ${next ? 'enabled' : 'disabled'}`);
+      toast.success(`Cabin ${next ? 'enabled' : 'disabled'}`);
     } catch {
-      toast.error('Failed to update room');
+      toast.error('Failed to update cabin');
     } finally {
       setTogglingId(null);
     }
@@ -96,7 +96,7 @@ export default function AdminRoomsPage() {
       enable ? r.isAvailable === false : r.isAvailable !== false
     );
     if (targets.length === 0) {
-      toast.info(`All visible rooms are already ${enable ? 'enabled' : 'disabled'}`);
+      toast.info(`All visible cabins are already ${enable ? 'enabled' : 'disabled'}`);
       return;
     }
     setBulkUpdating(true);
@@ -107,9 +107,9 @@ export default function AdminRoomsPage() {
           targets.find((t) => t.id === r.id) ? { ...r, isAvailable: enable } : r
         )
       );
-      toast.success(`${targets.length} room${targets.length > 1 ? 's' : ''} ${enable ? 'enabled' : 'disabled'}`);
+      toast.success(`${targets.length} cabin${targets.length > 1 ? 's' : ''} ${enable ? 'enabled' : 'disabled'}`);
     } catch {
-      toast.error('Failed to update rooms');
+      toast.error('Failed to update cabins');
     } finally {
       setBulkUpdating(false);
     }
@@ -120,13 +120,13 @@ export default function AdminRoomsPage() {
       {/* Header */}
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-stone-900">Rooms</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-stone-900">Cabins</h1>
           <p className="text-stone-500 text-sm mt-0.5">Manage your property listings</p>
         </div>
         <Link href="/admin/rooms/new">
           <Button variant="premium" size="sm" className="gap-1.5 h-9 px-3 sm:px-4 sm:h-10">
             <Plus className="h-4 w-4" />
-            <span className="hidden sm:inline">Add Room</span>
+            <span className="hidden sm:inline">Add Cabin</span>
             <span className="sm:hidden">Add</span>
           </Button>
         </Link>
@@ -150,7 +150,7 @@ export default function AdminRoomsPage() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Rooms</SelectItem>
+              <SelectItem value="all">All Cabins</SelectItem>
               <SelectItem value="enabled">Enabled</SelectItem>
               <SelectItem value="disabled">Disabled</SelectItem>
             </SelectContent>
@@ -180,7 +180,7 @@ export default function AdminRoomsPage() {
             Disable All
           </Button>
           <span className="text-xs text-stone-400 ml-auto">
-            {filtered.length} {filtered.length === 1 ? 'room' : 'rooms'}
+            {filtered.length} {filtered.length === 1 ? 'cabin' : 'cabins'}
           </span>
         </div>
       </div>
@@ -193,9 +193,9 @@ export default function AdminRoomsPage() {
       ) : filtered.length === 0 ? (
         <div className="text-center py-16">
           <div className="text-4xl mb-3">🏕️</div>
-          <p className="text-stone-500 mb-4 text-sm">No rooms found</p>
+          <p className="text-stone-500 mb-4 text-sm">No cabins found</p>
           <Link href="/admin/rooms/new">
-            <Button variant="premium" size="sm">Add First Room</Button>
+            <Button variant="premium" size="sm">Add First Cabin</Button>
           </Link>
         </div>
       ) : (
@@ -279,7 +279,7 @@ export default function AdminRoomsPage() {
                           type="button"
                           onClick={() => handleToggleAvailability(room)}
                           disabled={togglingId === room.id}
-                          title={room.isAvailable === false ? 'Enable room' : 'Disable room'}
+                          title={room.isAvailable === false ? 'Enable cabin' : 'Disable cabin'}
                           className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-semibold transition-all border ${
                             room.isAvailable === false
                               ? 'bg-red-50 text-red-600 border-red-200 hover:bg-red-100'
@@ -300,13 +300,13 @@ export default function AdminRoomsPage() {
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8 text-stone-400 hover:text-stone-700"
-                            title="Preview room"
+                            title="Preview cabin"
                           >
                             <ExternalLink className="h-3.5 w-3.5" />
                           </Button>
                         </Link>
                         <Link href={`/admin/rooms/${room.id}`}>
-                          <Button variant="ghost" size="icon" className="h-8 w-8" title="Edit room">
+                          <Button variant="ghost" size="icon" className="h-8 w-8" title="Edit cabin">
                             <Edit className="h-3.5 w-3.5" />
                           </Button>
                         </Link>
@@ -316,7 +316,7 @@ export default function AdminRoomsPage() {
                           className="h-8 w-8 text-red-400 hover:text-red-600 hover:bg-red-50"
                           onClick={() => handleDeleteClick(room)}
                           disabled={checkingDelete === room.id}
-                          title="Delete room"
+                          title="Delete cabin"
                         >
                           {checkingDelete === room.id
                             ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -337,15 +337,15 @@ export default function AdminRoomsPage() {
       <Dialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete Room</DialogTitle>
+            <DialogTitle>Delete Cabin</DialogTitle>
             <DialogDescription>
-              This will permanently delete the room and all its data. This cannot be undone.
+              This will permanently delete the cabin and all its data. This cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <div className="flex gap-3 mt-4">
             <Button variant="outline" className="flex-1" onClick={() => setDeleteId(null)}>Cancel</Button>
             <Button variant="destructive" className="flex-1" onClick={handleDelete} disabled={deleting}>
-              {deleting ? 'Deleting…' : 'Delete Room'}
+              {deleting ? 'Deleting…' : 'Delete Cabin'}
             </Button>
           </div>
         </DialogContent>
@@ -355,7 +355,7 @@ export default function AdminRoomsPage() {
       <Dialog open={!!blockedDelete} onOpenChange={(open) => !open && setBlockedDelete(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Cannot Delete Room</DialogTitle>
+            <DialogTitle>Cannot Delete Cabin</DialogTitle>
             <DialogDescription>
               <span className="font-semibold text-stone-800">{blockedDelete?.title}</span> has{' '}
               <span className="font-semibold text-red-600">

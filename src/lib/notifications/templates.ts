@@ -110,8 +110,6 @@ export interface BookingEmailData {
   guestName: string;
   bookingId: string;
   roomTitle: string;
-  roomLocation?: string;
-  mapsUrl?: string;
   checkIn: string;
   checkOut: string;
   nights: number;
@@ -129,6 +127,7 @@ export interface BookingEmailData {
   paymentType?: 'full' | 'half' | 'token';
   depositAmount?: number;
   remainingBalance?: number;
+  balancePaymentUrl?: string;
 }
 
 export interface OTPEmailData {
@@ -184,7 +183,7 @@ export function bookingCreatedTemplate(d: BookingEmailData): string {
     <table width="100%" cellpadding="0" cellspacing="0" style="background:#fafaf9;border:1px solid #e7e5e4;border-radius:12px;margin-bottom:20px;">
       <tr><td style="padding:16px 20px;">
         <p style="margin:0 0 4px;font-size:17px;font-weight:700;color:#1c1917;">${d.roomTitle}</p>
-        ${d.roomLocation ? `<p style="margin:0;font-size:13px;color:#78716c;">📍 ${d.roomLocation}</p>` : ''}
+        <p style="margin:0;font-size:13px;color:#78716c;">📍 ${RELAXIN_ADDRESS}</p>
       </td></tr>
     </table>
 
@@ -237,7 +236,11 @@ export function bookingCreatedTemplate(d: BookingEmailData): string {
           <td align="right" style="font-size:13px;font-weight:700;color:#9a3412;padding-top:4px;">${fmt(d.remainingBalance)}</td>
         </tr>
       </table>
-      <p style="margin:8px 0 0;font-size:12px;color:#b45309;">Please bring the remaining balance on arrival. Cash or card accepted.</p>
+      <p style="margin:8px 0 0;font-size:12px;color:#b45309;">Pay online anytime before arrival, or bring it with you — cash or card accepted at check-in.</p>
+      ${d.balancePaymentUrl ? `
+      <div style="text-align:center;margin-top:14px;">
+        <a href="${d.balancePaymentUrl}" target="_blank" style="display:inline-block;background:#d97706;color:#ffffff;font-size:13px;font-weight:700;text-decoration:none;padding:11px 28px;border-radius:8px;">Pay Remaining Balance Now</a>
+      </div>` : ''}
     </div>` : ''}
 
     <!-- Next steps -->
@@ -253,6 +256,36 @@ export function bookingCreatedTemplate(d: BookingEmailData): string {
   );
 }
 
+// ─── Balance Payment Received ────────────────────────────────────────────────
+
+export function balancePaidTemplate(d: BookingEmailData): string {
+  const content = `
+  <tr><td style="padding:24px 32px 32px;">
+    <p style="margin:0 0 20px;font-size:14px;color:#57534e;line-height:1.6;">
+      Hi ${d.guestName}, we've received your remaining balance for <strong>${d.roomTitle}</strong>. Your booking is now fully paid — nothing left to settle at check-in.
+    </p>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="background:#fafaf9;border:1px solid #e7e5e4;border-radius:12px;margin-bottom:20px;">
+      <tr><td style="padding:16px 20px;">
+        <p style="margin:0 0 4px;font-size:15px;font-weight:600;color:#1c1917;">${d.roomTitle}</p>
+        <p style="margin:0;font-size:13px;color:#78716c;">Booking: <span style="font-family:monospace;">${d.bookingId}</span></p>
+      </td></tr>
+    </table>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid #e7e5e4;padding-top:14px;">
+      <tr>
+        <td style="font-size:14px;color:#57534e;">Balance paid</td>
+        <td align="right" style="font-size:16px;font-weight:700;color:#059669;">${fmt(d.depositAmount ?? 0)}</td>
+      </tr>
+    </table>
+  </td></tr>`;
+
+  return base(
+    statusBanner('#ecfdf5', '💳', 'Balance Payment Received', `Your booking for ${d.roomTitle} is fully paid.`) + content,
+    `Balance payment received for ${d.roomTitle}`
+  );
+}
+
 // ─── Booking Created (pay at property) ───────────────────────────────────────
 
 export function bookingReservedTemplate(d: BookingEmailData): string {
@@ -263,7 +296,7 @@ export function bookingReservedTemplate(d: BookingEmailData): string {
     <table width="100%" cellpadding="0" cellspacing="0" style="background:#fafaf9;border:1px solid #e7e5e4;border-radius:12px;margin-bottom:20px;">
       <tr><td style="padding:16px 20px;">
         <p style="margin:0 0 4px;font-size:17px;font-weight:700;color:#1c1917;">${d.roomTitle}</p>
-        ${d.roomLocation ? `<p style="margin:0;font-size:13px;color:#78716c;">📍 ${d.roomLocation}</p>` : ''}
+        <p style="margin:0;font-size:13px;color:#78716c;">📍 ${RELAXIN_ADDRESS}</p>
       </td></tr>
     </table>
 
@@ -302,7 +335,7 @@ export function bookingConfirmedTemplate(d: BookingEmailData): string {
     <table width="100%" cellpadding="0" cellspacing="0" style="background:#fafaf9;border:1px solid #e7e5e4;border-radius:12px;margin-bottom:20px;">
       <tr><td style="padding:16px 20px;">
         <p style="margin:0 0 4px;font-size:17px;font-weight:700;color:#1c1917;">${d.roomTitle}</p>
-        ${d.roomLocation ? `<p style="margin:0;font-size:13px;color:#78716c;">📍 ${d.roomLocation}</p>` : ''}
+        <p style="margin:0;font-size:13px;color:#78716c;">📍 ${RELAXIN_ADDRESS}</p>
       </td></tr>
     </table>
 

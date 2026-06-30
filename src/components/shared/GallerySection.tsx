@@ -43,12 +43,12 @@ function groupIntoColumns(items: GalleryItem[]): Column[] {
 
 function GalleryCard({ item, className }: { item: GalleryItem; className?: string }) {
   return (
-    <div className={`relative overflow-hidden rounded-2xl group shadow-xl cursor-pointer shrink-0 ${className}`}>
+    <div className={`relative overflow-hidden group shadow-xl cursor-pointer shrink-0 ${className}`}>
       <Image src={item.src} alt={item.label} fill
         className="object-cover transition-transform duration-700 group-hover:scale-110"
         sizes="(max-width: 768px) 260px, 320px" />
       <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
-      <div className="absolute inset-0 rounded-2xl ring-0 group-hover:ring-2 group-hover:ring-amber-400/70 transition-all duration-300" />
+      <div className="absolute inset-0 ring-0 group-hover:ring-2 group-hover:ring-amber-400/70 transition-all duration-300" />
       <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 via-orange-400 to-rose-400 scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
       <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-1 group-hover:translate-y-0 transition-transform duration-300">
         <p className="text-white font-bold text-sm md:text-base leading-tight">{item.label}</p>
@@ -58,9 +58,8 @@ function GalleryCard({ item, className }: { item: GalleryItem; className?: strin
   );
 }
 
-// Zone thresholds — outer 25% triggers scroll, speed ramps up toward the edge
 const EDGE_ZONE = 0.25;
-const MAX_SPEED = 12; // px per frame at the very edge
+const MAX_SPEED = 12;
 
 export default function GallerySection() {
   const [items, setItems] = useState<GalleryItem[]>([]);
@@ -68,8 +67,6 @@ export default function GallerySection() {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const rafRef     = useRef<number | null>(null);
   const zoneRef    = useRef<'left' | 'right' | 'none'>('none');
-
-  // zone indicators (desktop only)
   const [zone, setZone] = useState<'left' | 'right' | 'none'>('none');
 
   useEffect(() => {
@@ -79,10 +76,7 @@ export default function GallerySection() {
   }, []);
 
   const stopScroll = useCallback(() => {
-    if (rafRef.current !== null) {
-      cancelAnimationFrame(rafRef.current);
-      rafRef.current = null;
-    }
+    if (rafRef.current !== null) { cancelAnimationFrame(rafRef.current); rafRef.current = null; }
   }, []);
 
   const startScroll = useCallback((direction: 'left' | 'right', speed: number) => {
@@ -100,37 +94,18 @@ export default function GallerySection() {
     const wrapper = wrapperRef.current;
     if (!wrapper) return;
     const { left, width } = wrapper.getBoundingClientRect();
-    const relX = (e.clientX - left) / width; // 0..1
-
+    const relX = (e.clientX - left) / width;
     let newZone: 'left' | 'right' | 'none' = 'none';
     let speed = 0;
-
-    if (relX < EDGE_ZONE) {
-      newZone = 'left';
-      // ramp: 0 at boundary (0.25), MAX_SPEED at edge (0)
-      speed = Math.round(MAX_SPEED * (1 - relX / EDGE_ZONE));
-    } else if (relX > 1 - EDGE_ZONE) {
-      newZone = 'right';
-      speed = Math.round(MAX_SPEED * ((relX - (1 - EDGE_ZONE)) / EDGE_ZONE));
-    }
-
+    if (relX < EDGE_ZONE) { newZone = 'left';  speed = Math.round(MAX_SPEED * (1 - relX / EDGE_ZONE)); }
+    else if (relX > 1 - EDGE_ZONE) { newZone = 'right'; speed = Math.round(MAX_SPEED * ((relX - (1 - EDGE_ZONE)) / EDGE_ZONE)); }
     if (newZone !== zoneRef.current) {
-      zoneRef.current = newZone;
-      setZone(newZone);
-      if (newZone === 'none') {
-        stopScroll();
-      } else {
-        startScroll(newZone, Math.max(speed, 2));
-      }
+      zoneRef.current = newZone; setZone(newZone);
+      if (newZone === 'none') stopScroll(); else startScroll(newZone, Math.max(speed, 2));
     }
   }, [startScroll, stopScroll]);
 
-  const handleMouseLeave = useCallback(() => {
-    zoneRef.current = 'none';
-    setZone('none');
-    stopScroll();
-  }, [stopScroll]);
-
+  const handleMouseLeave = useCallback(() => { zoneRef.current = 'none'; setZone('none'); stopScroll(); }, [stopScroll]);
   useEffect(() => () => stopScroll(), [stopScroll]);
 
   const display = items.length > 0 ? items : FALLBACK;
@@ -156,64 +131,36 @@ export default function GallerySection() {
               </span>
             </h2>
             <p className="text-orange-300 mt-2 text-sm sm:text-base max-w-sm">
-              Every moment is picture-perfect.
+              Where time stands still and beauty demands to be remembered.
             </p>
           </div>
-          <Link href="/rooms"
+          <Link href="/gallery"
             className="inline-flex items-center gap-2 text-sm font-bold text-amber-300 hover:text-amber-200 transition-colors group shrink-0 bg-orange-800/50 px-5 py-3 rounded-xl hover:bg-orange-800">
-            Browse all <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+            View full gallery <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
           </Link>
         </motion.div>
 
-        {/* ── Scroll wrapper with hover zones ── */}
-        <div
-          ref={wrapperRef}
-          className="relative select-none"
-          onMouseMove={handleMouseMove}
-          onMouseLeave={handleMouseLeave}
-        >
-          {/* Left hover zone indicator — desktop only */}
-          <div className={`
-            pointer-events-none absolute left-0 top-0 bottom-0 w-[25%] z-10
-            hidden sm:flex items-center justify-start pl-4
-            transition-opacity duration-200
-            ${zone === 'left' ? 'opacity-100' : 'opacity-0'}
-          `}>
+        {/* Scroll wrapper with hover zones */}
+        <div ref={wrapperRef} className="relative select-none" onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave}>
+
+          <div className={`pointer-events-none absolute left-0 top-0 bottom-0 w-[25%] z-10 hidden sm:flex items-center justify-start pl-4 transition-opacity duration-200 ${zone === 'left' ? 'opacity-100' : 'opacity-0'}`}>
             <div className="flex items-center gap-1.5 bg-black/50 backdrop-blur-sm text-white text-xs font-bold px-3 py-2 rounded-full">
               <ChevronLeft className="h-4 w-4" /> Scroll
             </div>
-            {/* Gradient fade */}
-            <div className="absolute inset-0 bg-gradient-to-r from-black/30 to-transparent rounded-l-2xl" />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/30 to-transparent" />
           </div>
 
-          {/* Right hover zone indicator — desktop only */}
-          <div className={`
-            pointer-events-none absolute right-0 top-0 bottom-0 w-[25%] z-10
-            hidden sm:flex items-center justify-end pr-4
-            transition-opacity duration-200
-            ${zone === 'right' ? 'opacity-100' : 'opacity-0'}
-          `}>
+          <div className={`pointer-events-none absolute right-0 top-0 bottom-0 w-[25%] z-10 hidden sm:flex items-center justify-end pr-4 transition-opacity duration-200 ${zone === 'right' ? 'opacity-100' : 'opacity-0'}`}>
             <div className="flex items-center gap-1.5 bg-black/50 backdrop-blur-sm text-white text-xs font-bold px-3 py-2 rounded-full">
               Scroll <ChevronRight className="h-4 w-4" />
             </div>
-            {/* Gradient fade */}
-            <div className="absolute inset-0 bg-gradient-to-l from-black/30 to-transparent rounded-r-2xl" />
+            <div className="absolute inset-0 bg-gradient-to-l from-black/30 to-transparent" />
           </div>
 
-          {/* Scroll strip */}
-          <div
-            ref={scrollRef}
-            className={`gallery-scroll flex gap-3 overflow-x-auto no-scrollbar pb-2 ${
-              zone === 'left' ? 'cursor-w-resize' : zone === 'right' ? 'cursor-e-resize' : 'cursor-default'
-            }`}
-          >
+          <div ref={scrollRef} className={`gallery-scroll flex gap-3 overflow-x-auto no-scrollbar pb-2 ${zone === 'left' ? 'cursor-w-resize' : zone === 'right' ? 'cursor-e-resize' : 'cursor-default'}`}>
             {columns.map((col, ci) => (
-              <motion.div
-                key={ci}
-                initial={{ opacity:0, x: 40 }} whileInView={{ opacity:1, x:0 }}
-                viewport={{ once:true }} transition={{ delay: ci * 0.05 }}
-                className="gallery-col shrink-0"
-              >
+              <motion.div key={ci} initial={{ opacity:0, x:40 }} whileInView={{ opacity:1, x:0 }}
+                viewport={{ once:true }} transition={{ delay: ci * 0.05 }} className="gallery-col shrink-0">
                 {col.type === 'large' ? (
                   <GalleryCard item={col.item} className="w-[300px] sm:w-[340px] h-[440px]" />
                 ) : (
@@ -228,11 +175,7 @@ export default function GallerySection() {
           </div>
         </div>
 
-        {/* Mobile hint */}
-        <p className="sm:hidden text-center text-orange-600 text-xs mt-4 tracking-wide">
-          Swipe to explore →
-        </p>
-
+        <p className="sm:hidden text-center text-orange-600 text-xs mt-4 tracking-wide">Swipe to explore →</p>
       </div>
     </section>
   );

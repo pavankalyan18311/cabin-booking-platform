@@ -15,6 +15,7 @@ import { toast } from 'sonner';
 
 const navLinks = [
   { href: '/rooms',          label: 'Explore'   },
+  { href: '/gallery',        label: 'Gallery'   },
   { href: '/#amenities',    label: 'Amenities' },
   { href: '/#testimonials', label: 'Reviews'   },
   { href: '/#contact',      label: 'Contact'   },
@@ -53,7 +54,7 @@ export default function Navbar() {
   useEffect(() => { setMounted(true); }, []);
 
   // Pages with dark/hero backgrounds — navbar stays transparent until scroll
-  const isDarkPage = pathname === '/' || pathname.startsWith('/rooms') || pathname.startsWith('/checkout') || pathname.startsWith('/admin');
+  const isDarkPage = pathname === '/' || pathname.startsWith('/rooms') || pathname.startsWith('/checkout') || pathname.startsWith('/admin') || pathname.startsWith('/gallery');
   const dark = scrolled || !isDarkPage;
 
   useEffect(() => {
@@ -77,7 +78,7 @@ export default function Navbar() {
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
       dark
-        ? 'bg-white/96 dark:bg-stone-900/96 backdrop-blur-md shadow-sm border-b border-stone-100 dark:border-stone-800'
+        ? 'bg-white/96 dark:bg-stone-900/96 backdrop-blur-md'
         : 'bg-transparent'
     }`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -160,11 +161,6 @@ export default function Navbar() {
                         {userInitials}
                       </AvatarFallback>
                     </Avatar>
-                    <span className={`text-sm font-medium hidden lg:block ${
-                      dark ? 'text-stone-900' : 'text-white'
-                    }`}>
-                      {toTitleCase(user.displayName?.split(' ')[0])}
-                    </span>
                   </button>
 
                   <AnimatePresence>

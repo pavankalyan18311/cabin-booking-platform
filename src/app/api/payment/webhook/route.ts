@@ -7,6 +7,7 @@ import { format, eachDayOfInterval, parseISO } from 'date-fns';
 import type { Booking, Payment } from '@/types';
 import type Stripe from 'stripe';
 import { NotificationService } from '@/lib/notifications';
+import { signBalanceToken } from '@/lib/stripe/balanceToken';
 
 // Disable body parsing — Stripe webhook needs the raw body for signature verification
 export const runtime = 'nodejs';
@@ -33,13 +34,80 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid webhook signature' }, { status: 400 });
   }
 
-  // Only handle payment_intent.succeeded — safety net for when the client doesn't call create-booking
+  // payment_intent.succeeded — safety net for when the client doesn't call create-booking
   if (event.type === 'payment_intent.succeeded') {
     const paymentIntent = event.data.object as Stripe.PaymentIntent;
     await handlePaymentSucceeded(paymentIntent);
   }
 
+  // checkout.session.completed — fired when a guest pays their remaining
+  // balance via the link emailed in the half-payment booking confirmation
+  if (event.type === 'checkout.session.completed') {
+    const session = event.data.object as Stripe.Checkout.Session;
+    if (session.metadata?.type === 'balance' && session.metadata.bookingId) {
+      await handleBalancePaid(session);
+    }
+  }
+
   return NextResponse.json({ received: true });
+}
+
+async function handleBalancePaid(session: Stripe.Checkout.Session) {
+  const db = adminDb();
+  const bookingId = session.metadata!.bookingId;
+  const bookingRef = db.collection(COLLECTIONS.BOOKINGS).doc(bookingId);
+
+  const bookingSnap = await bookingRef.get();
+  if (!bookingSnap.exists) {
+    console.warn('[webhook] balance payment for unknown booking, skipping', bookingId);
+    return;
+  }
+  const booking = bookingSnap.data() as Booking;
+  if (booking.balancePaid) return; // already processed (webhook retry)
+
+  const now = new Date().toISOString();
+  const amountPaid = (session.amount_total ?? 0) / 100;
+  await bookingRef.update({
+    balancePaid: true,
+    balancePaidAt: now,
+    remainingBalance: 0,
+    updatedAt: now,
+  });
+
+  const payment: Omit<Payment, 'id'> = {
+    bookingId,
+    paymentIntentId: typeof session.payment_intent === 'string' ? session.payment_intent : (session.payment_intent?.id ?? session.id),
+    amount: session.amount_total ?? 0,
+    currency: session.currency ?? 'usd',
+    status: 'succeeded',
+    nightlyRate: booking.nightlyRate,
+    nights: booking.nights,
+    subtotal: amountPaid,
+    serviceFee: 0,
+    taxes: 0,
+    discountAmount: 0,
+    createdAt: now,
+    updatedAt: now,
+  };
+  await db.collection(COLLECTIONS.PAYMENTS).add(payment);
+
+  if (booking.userEmail) {
+    await NotificationService.balancePaid({
+      to: booking.userEmail,
+      guestName: booking.userName ?? booking.userEmail,
+      bookingId,
+      roomTitle: booking.roomTitle ?? 'Cabin Booking',
+      checkIn: booking.checkIn,
+      checkOut: booking.checkOut,
+      nights: booking.nights,
+      guests: booking.guests,
+      nightlyRate: booking.nightlyRate,
+      serviceFee: booking.serviceFee,
+      taxes: booking.taxes,
+      totalPrice: booking.totalPrice,
+      depositAmount: amountPaid,
+    }).catch((e) => console.error('[webhook] balance-paid email failed:', e));
+  }
 }
 
 async function handlePaymentSucceeded(paymentIntent: Stripe.PaymentIntent) {
@@ -169,6 +237,9 @@ async function handlePaymentSucceeded(paymentIntent: Stripe.PaymentIntent) {
   if (bookingId && wasCreated) {
     after(async () => {
       const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? '';
+      const balancePaymentUrl = paymentType === 'half' && remainingBalance > 0
+        ? `${appUrl}/api/payment/balance-checkout/${bookingId}?token=${signBalanceToken(bookingId)}`
+        : undefined;
       await Promise.allSettled([
         m.userEmail
           ? NotificationService.bookingCreated({
@@ -189,6 +260,7 @@ async function handlePaymentSucceeded(paymentIntent: Stripe.PaymentIntent) {
               paymentType,
               depositAmount,
               remainingBalance,
+              balancePaymentUrl,
               ...(m.couponCode ? { couponCode: m.couponCode } : {}),
               ...(m.specialRequests ? { specialRequests: m.specialRequests } : {}),
             }).catch((e) => console.error('[webhook] guest email failed:', e))

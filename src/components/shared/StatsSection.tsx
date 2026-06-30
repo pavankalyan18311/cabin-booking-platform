@@ -2,14 +2,14 @@
 import { motion } from 'framer-motion';
 import { Home, Users, Star, Award } from 'lucide-react';
 
-const stats = [
-  { icon: Home,  value: '7',   label: 'Unique Rentals',  sub: 'New Lisbon, Wisconsin'        },
-  { icon: Users, value: '4',   label: 'Rental Styles',   sub: 'Cabins · Loft · Luxe · Lodge' },
-  { icon: Star,  value: '5.0', label: 'Guest Rating',    sub: 'Across all rentals'           },
-  { icon: Award, value: '2',   label: 'Private Ponds',   sub: 'Beachside & wooded settings'  },
-];
+export default function StatsSection({ avgRating, reviewCount }: { avgRating: number; reviewCount: number }) {
+  const stats = [
+    { icon: Home,  value: '7',                  label: 'Unique Rentals',  sub: 'New Lisbon, Wisconsin'                                                },
+    { icon: Users, value: '4',                  label: 'Rental Styles',   sub: 'Cabins · Loft · Luxe · Lodge'                                        },
+    { icon: Star,  value: '4.9',                label: 'Guest Rating',    sub: reviewCount > 0 ? `${reviewCount} verified reviews` : 'Across all rentals' },
+    { icon: Award, value: '2',                  label: 'Private Ponds',   sub: 'Beachside & wooded settings'                                         },
+  ];
 
-export default function StatsSection() {
   return (
     <section className="bg-stone-950 py-16 relative overflow-hidden">
       {/* Subtle ambient glow */}

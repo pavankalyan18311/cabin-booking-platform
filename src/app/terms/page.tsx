@@ -53,13 +53,10 @@ export default function TermsPage() {
 
           <section>
             <h2 className="text-xl font-bold text-stone-900 mb-3">4. Cancellations & Refunds</h2>
-            <p className="leading-relaxed text-sm mb-2">
-              Cancellation policies vary by property and are shown on each listing. In general:
-            </p>
             <ul className="list-disc pl-5 space-y-2 text-sm leading-relaxed">
-              <li>Cancellations made more than 14 days before check-in may be eligible for a full refund.</li>
-              <li>Cancellations made within 14 days of check-in are typically non-refundable.</li>
-              <li>Refunds, when applicable, are processed within 5–10 business days to your original payment method.</li>
+              <li>All paid prepayments are non-refundable, regardless of when the cancellation is made.</li>
+              <li>Please review your selected dates carefully before confirming a booking.</li>
+              <li>The remaining balance, where applicable, is due before arrival as shown at checkout.</li>
             </ul>
           </section>
 

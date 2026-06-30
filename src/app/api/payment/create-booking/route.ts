@@ -6,6 +6,7 @@ import { FieldValue } from 'firebase-admin/firestore';
 import { format, eachDayOfInterval, parseISO } from 'date-fns';
 import type { Booking, Payment } from '@/types';
 import { NotificationService } from '@/lib/notifications';
+import { signBalanceToken } from '@/lib/stripe/balanceToken';
 
 export async function POST(request: NextRequest) {
   try {
@@ -176,6 +177,9 @@ export async function POST(request: NextRequest) {
     after(async () => {
       if (!wasCreated) return;
       const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? '';
+      const balancePaymentUrl = paymentType === 'half' && remainingBalance > 0
+        ? `${appUrl}/api/payment/balance-checkout/${bookingId}?token=${signBalanceToken(bookingId)}`
+        : undefined;
       await Promise.allSettled([
         m.userEmail
           ? NotificationService.bookingCreated({
@@ -196,6 +200,7 @@ export async function POST(request: NextRequest) {
               paymentType,
               depositAmount,
               remainingBalance,
+              balancePaymentUrl,
               ...(m.couponCode ? { couponCode: m.couponCode } : {}),
               ...(m.specialRequests ? { specialRequests: m.specialRequests } : {}),
             }).catch((e) => console.error('[create-booking] guest email failed:', e))

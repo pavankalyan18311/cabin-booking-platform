@@ -12,7 +12,6 @@ export default function FeaturedRooms() {
 
   return (
     <section className="py-24 bg-white relative overflow-hidden">
-      {/* Subtle warm background */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-amber-50/60 via-transparent to-transparent pointer-events-none" />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -33,7 +32,7 @@ export default function FeaturedRooms() {
               </span>
             </h2>
             <p className="text-stone-500 mt-3 max-w-lg text-base leading-relaxed">
-              Our most sought-after cabins — curated for an unforgettable escape from the everyday.
+              Spaces so stunning, guests return year after year. Your next chapter begins here.
             </p>
           </div>
           <Link href="/rooms">
@@ -44,8 +43,8 @@ export default function FeaturedRooms() {
           </Link>
         </motion.div>
 
-        {/* Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-7">
+        {/* Grid — gallery-style tight layout */}
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-[2px]">
           {loading
             ? Array.from({ length: 6 }).map((_, i) => <RoomCardSkeleton key={i} />)
             : rooms.map((room, i) => (

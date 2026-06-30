@@ -20,6 +20,7 @@ export default function RoomsPage() {
   const [searchResults, setSearchResults] = useState<Room[] | null>(null);
   const [sortBy,        setSortBy]        = useState('default');
   const [searchFocused, setSearchFocused] = useState(false);
+  const [openPopover, setOpenPopover] = useState<'sort' | 'filter' | null>(null);
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const handleSearch = useCallback(
@@ -44,13 +45,13 @@ export default function RoomsPage() {
     <div className="bg-dual-blend min-h-screen">
 
       {/* ── Header ── */}
-      <div className="relative pt-24 pb-16 overflow-hidden">
+      <div className="relative pt-20 sm:pt-24 pb-8 sm:pb-10">
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
             <p className="text-amber-400 text-xs font-bold uppercase tracking-[0.25em] mb-3">
               {sortedRooms.length > 0 && !loading ? `${sortedRooms.length} cabins available` : 'Handpicked retreats'}
             </p>
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-white tracking-tight leading-none mb-4">
+            <h1 className="font-display text-3xl sm:text-4xl md:text-5xl font-bold text-white tracking-tight leading-none mb-3">
               Find Your
               <span className="bg-gradient-to-r from-amber-400 via-yellow-300 to-orange-400 bg-clip-text text-transparent"> Perfect</span>
               <br />Cabin
@@ -63,7 +64,7 @@ export default function RoomsPage() {
           {/* Search + filter */}
           <motion.div
             initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
-            className="mt-10 flex flex-col sm:flex-row gap-3 items-stretch sm:items-center"
+            className="mt-6 flex flex-col sm:flex-row gap-3 items-stretch sm:items-center"
           >
             <div className={`relative flex-1 max-w-lg transition-all duration-300 ${searchFocused ? 'ring-2 ring-amber-500/40 rounded-2xl' : ''}`}>
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-white/25 pointer-events-none" />
@@ -77,7 +78,12 @@ export default function RoomsPage() {
               />
             </div>
             <div className="flex items-center gap-2">
-              <Select value={sortBy} onValueChange={setSortBy}>
+              <Select
+                value={sortBy}
+                onValueChange={setSortBy}
+                open={openPopover === 'sort'}
+                onOpenChange={(o) => setOpenPopover(o ? 'sort' : null)}
+              >
                 <SelectTrigger className="input-glass h-12 w-44 rounded-2xl text-sm text-white/60 focus:ring-0 border-0">
                   <SelectValue />
                 </SelectTrigger>
@@ -88,7 +94,10 @@ export default function RoomsPage() {
                   <SelectItem value="rating">Top Rated</SelectItem>
                 </SelectContent>
               </Select>
-              <FilterPanel />
+              <FilterPanel
+                open={openPopover === 'filter'}
+                onOpenChange={(o) => setOpenPopover(o ? 'filter' : null)}
+              />
             </div>
           </motion.div>
         </div>

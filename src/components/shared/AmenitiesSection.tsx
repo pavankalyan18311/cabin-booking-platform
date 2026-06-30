@@ -3,14 +3,14 @@ import { motion } from 'framer-motion';
 import { Wifi, Flame, Droplets, TreePine, Dog, ChefHat, Car, Mountain } from 'lucide-react';
 
 const amenities = [
-  { icon: Wifi,     title: 'High-Speed WiFi',  desc: 'Fiber-optic speeds, stay connected',       bg: 'bg-sky-400',      text: 'text-sky-900'     },
-  { icon: Flame,    title: 'Stone Fireplace',  desc: 'Crackling wood fire every evening',         bg: 'bg-orange-400',   text: 'text-orange-900'  },
-  { icon: Droplets, title: 'Private Hot Tub',  desc: 'Soak under the stars, just for you',        bg: 'bg-teal-400',     text: 'text-teal-900'    },
-  { icon: TreePine, title: 'Forest Setting',   desc: 'Pristine wilderness at your doorstep',      bg: 'bg-emerald-400',  text: 'text-emerald-900' },
-  { icon: Dog,      title: 'Pet Friendly',     desc: 'Four-legged guests warmly welcomed',        bg: 'bg-amber-400',    text: 'text-amber-900'   },
-  { icon: ChefHat,  title: 'Gourmet Kitchen',  desc: 'Fully equipped, cook like home',            bg: 'bg-rose-400',     text: 'text-rose-900'    },
-  { icon: Car,      title: 'Free Parking',     desc: 'Private parking, always complimentary',     bg: 'bg-slate-400',    text: 'text-slate-900'   },
-  { icon: Mountain, title: 'Scenic Views',     desc: 'Breathtaking vistas, morning to dusk',      bg: 'bg-violet-400',   text: 'text-violet-900'  },
+  { icon: Wifi,     title: 'High-Speed WiFi',  desc: 'Stay connected — or blissfully forget to',   bg: 'bg-sky-400',      text: 'text-sky-900'     },
+  { icon: Flame,    title: 'Stone Fireplace',  desc: 'Crackling warmth on cool Wisconsin nights',  bg: 'bg-orange-400',   text: 'text-orange-900'  },
+  { icon: Droplets, title: 'Private Hot Tub',  desc: 'Sink in. Stars above. The world can wait.',  bg: 'bg-teal-400',     text: 'text-teal-900'    },
+  { icon: TreePine, title: 'Forest Setting',   desc: 'Ancient trees, fresh air, pure silence',     bg: 'bg-emerald-400',  text: 'text-emerald-900' },
+  { icon: Dog,      title: 'Pet Friendly',     desc: 'Your furry family belongs here too',         bg: 'bg-amber-400',    text: 'text-amber-900'   },
+  { icon: ChefHat,  title: 'Gourmet Kitchen',  desc: 'Cook together, eat well, linger longer',     bg: 'bg-rose-400',     text: 'text-rose-900'    },
+  { icon: Car,      title: 'Free Parking',     desc: 'Pull right up — your spot is waiting',       bg: 'bg-slate-400',    text: 'text-slate-900'   },
+  { icon: Mountain, title: 'Scenic Views',     desc: 'Every window frames something worth waking up for', bg: 'bg-violet-400', text: 'text-violet-900' },
 ];
 
 export default function AmenitiesSection() {
@@ -39,7 +39,7 @@ export default function AmenitiesSection() {
             </span>
           </h2>
           <p className="text-emerald-300 mt-4 max-w-xl mx-auto text-base">
-            Every property is vetted to ensure you enjoy the finest comforts in nature.
+            Thoughtfully crafted for guests who refuse to compromise — the finest luxuries, hidden deep in the heart of nature.
           </p>
         </motion.div>
 

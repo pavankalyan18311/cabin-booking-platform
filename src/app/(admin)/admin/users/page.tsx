@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Shield, ShieldOff, UserX } from 'lucide-react';
+import { Search, Shield, ShieldOff, UserX, Download, Table2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -13,10 +13,16 @@ import { formatDate } from '@/lib/utils';
 import type { User } from '@/types';
 import { toast } from 'sonner';
 
+function toCsvCell(value: string): string {
+  if (/[",\n]/.test(value)) return `"${value.replace(/"/g, '""')}"`;
+  return value;
+}
+
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [showTable, setShowTable] = useState(false);
 
   useEffect(() => {
     getAllUsers().then(setUsers).finally(() => setLoading(false));
@@ -48,6 +54,21 @@ export default function AdminUsersPage() {
     u.email.toLowerCase().includes(search.toLowerCase())
   );
 
+  const handleExport = () => {
+    const rows = [['Username', 'Email'], ...filtered.map((u) => [u.displayName, u.email ?? ''])];
+    const csv = rows.map((row) => row.map(toCsvCell).join(',')).join('\r\n');
+    const blob = new Blob([`﻿${csv}`], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `users-username-email-${formatDate(new Date().toISOString()).replace(/\s+/g, '-')}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+    toast.success('Excel sheet downloaded');
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -55,13 +76,44 @@ export default function AdminUsersPage() {
         <p className="text-stone-500 mt-1">Manage platform users and permissions.</p>
       </div>
 
-      <div className="flex gap-3">
+      <div className="flex flex-wrap gap-3 items-center">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400" />
           <Input placeholder="Search users..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
         </div>
-        <span className="text-sm text-stone-500 self-center">{filtered.length} users</span>
+        <span className="text-sm text-stone-500">{filtered.length} users</span>
+        <div className="flex-1" />
+        <Button variant="outline" size="sm" className="gap-1.5" onClick={() => setShowTable((v) => !v)}>
+          <Table2 className="h-3.5 w-3.5" /> {showTable ? 'Hide' : 'Show'} Username/Email Table
+        </Button>
+        <Button variant="outline" size="sm" className="gap-1.5" onClick={handleExport} disabled={filtered.length === 0}>
+          <Download className="h-3.5 w-3.5" /> Download Excel
+        </Button>
       </div>
+
+      {showTable && (
+        <Card className="overflow-hidden">
+          <div className="max-h-96 overflow-y-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-stone-50 sticky top-0">
+                <tr>
+                  <th className="text-left font-semibold text-stone-600 px-4 py-2.5 border-b border-stone-100">Username</th>
+                  <th className="text-left font-semibold text-stone-600 px-4 py-2.5 border-b border-stone-100">Email</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((u) => (
+                  <tr key={u.uid} className="hover:bg-stone-50">
+                    <td className="px-4 py-2 border-b border-stone-50 text-stone-900">{u.displayName}</td>
+                    <td className="px-4 py-2 border-b border-stone-50 text-stone-600">{u.email || '—'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="text-xs text-stone-400 px-4 py-2 border-t border-stone-100">Select and copy directly from the table above.</p>
+        </Card>
+      )}
 
       {loading ? (
         <div className="space-y-3">{[1,2,3].map(i => <Skeleton key={i} className="h-16 rounded-xl" />)}</div>

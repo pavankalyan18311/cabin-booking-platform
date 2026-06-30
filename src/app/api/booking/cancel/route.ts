@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { adminAuth, adminDb } from '@/lib/firebase/admin';
 import { COLLECTIONS } from '@/lib/firebase/collections';
 import { format, eachDayOfInterval, parseISO } from 'date-fns';
-import stripe from '@/lib/stripe/server';
 
 export async function POST(request: NextRequest) {
   try {
@@ -75,34 +74,10 @@ export async function POST(request: NextRequest) {
       }
     });
 
-    // Issue Stripe refund if the booking was paid
-    let refunded = false;
-    if (
-      bookingData.paymentStatus === 'succeeded' &&
-      bookingData.paymentIntentId &&
-      stripe
-    ) {
-      try {
-        await stripe.refunds.create({
-          payment_intent: bookingData.paymentIntentId,
-          reason: 'requested_by_customer',
-        });
-        await bookingRef.update({
-          paymentStatus: 'refunded',
-          updatedAt: new Date().toISOString(),
-        });
-        refunded = true;
-      } catch (refundErr) {
-        // Log but don't fail the cancellation — flag for manual review
-        console.error('[cancel-booking] Stripe refund failed — needs manual review:', refundErr);
-        await bookingRef.update({
-          refundPending: true,
-          updatedAt: new Date().toISOString(),
-        });
-      }
-    }
-
-    return NextResponse.json({ success: true, refunded });
+    // Self-service cancellations are non-refundable per policy — no Stripe
+    // refund is issued here. Refunds (room amount only) are only issued by
+    // an admin via the admin bookings dashboard.
+    return NextResponse.json({ success: true, refunded: false });
   } catch (err: unknown) {
     console.error('[cancel-booking]', err);
     const message = err instanceof Error ? err.message : 'Internal server error';

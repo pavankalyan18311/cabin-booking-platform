@@ -59,7 +59,7 @@ export default function AdminDashboard() {
   const stats = [
     { label: 'Total Bookings', value: bookings.length, icon: Calendar, color: 'text-amber-600', bg: 'bg-amber-50', change: '+12%' },
     { label: 'Total Revenue', value: formatCurrency(totalRevenue), icon: DollarSign, color: 'text-emerald-600', bg: 'bg-emerald-50', change: '+8%' },
-    { label: 'Total Rooms', value: rooms.length, icon: Home, color: 'text-blue-600', bg: 'bg-blue-50', change: `${rooms.filter(r => r.isAvailable).length} available` },
+    { label: 'Total Cabins', value: rooms.length, icon: Home, color: 'text-blue-600', bg: 'bg-blue-50', change: `${rooms.filter(r => r.isAvailable).length} available` },
     { label: 'Total Users', value: users.length, icon: Users, color: 'text-purple-600', bg: 'bg-purple-50', change: '+5 this week' },
   ];
 

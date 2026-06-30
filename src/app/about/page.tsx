@@ -256,7 +256,6 @@ export default function AboutPage() {
             <span className="inline-block px-4 py-1.5 rounded-full bg-teal-100 text-teal-700 text-xs font-bold uppercase tracking-widest mb-4">
               Health & Safety
             </span>
-            <h2 className="text-3xl font-black text-stone-900">COVID-19 Policies</h2>
             <p className="text-stone-500 mt-3 max-w-xl mx-auto">
               Our guests are our #1 priority. Here's what we've implemented to keep every stay safe and worry-free.
             </p>

@@ -2,6 +2,7 @@ import { sendEmail } from './email';
 import {
   otpTemplate,
   bookingCreatedTemplate,
+  balancePaidTemplate,
   bookingReservedTemplate,
   bookingConfirmedTemplate,
   bookingRejectedTemplate,
@@ -29,6 +30,14 @@ export const NotificationService = {
       to: data.to,
       subject: `Booking confirmed — ${data.roomTitle}`,
       html: bookingCreatedTemplate(data),
+    });
+  },
+
+  async balancePaid(data: BookingEmailData) {
+    return sendEmail({
+      to: data.to,
+      subject: `Balance payment received — ${data.roomTitle}`,
+      html: balancePaidTemplate(data),
     });
   },
 

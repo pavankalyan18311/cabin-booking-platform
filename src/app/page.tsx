@@ -9,6 +9,7 @@ import FAQSection from '@/components/shared/FAQSection';
 import ContactSection from '@/components/shared/ContactSection';
 import GallerySection from '@/components/shared/GallerySection';
 import NearbyLocationsSection from '@/components/shared/NearbyLocationsSection';
+import { getReviewsAggregate } from '@/lib/reviews-stats';
 
 export const metadata: Metadata = {
   title: 'Relaxin Cabins — New Lisbon, WI Cabin Rentals',
@@ -20,11 +21,13 @@ export const metadata: Metadata = {
   },
 };
 
-export default function HomePage() {
+export default async function HomePage() {
+  const { avgRating, reviewCount } = await getReviewsAggregate();
+
   return (
     <>
       <Hero />
-      <StatsSection />
+      <StatsSection avgRating={avgRating} reviewCount={reviewCount} />
       <CabinShowcaseSection />
       <FeaturedRooms />
       <AmenitiesSection />

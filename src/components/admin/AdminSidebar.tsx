@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils';
 
 const navItems = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/admin/rooms', label: 'Rooms', icon: Home },
+  { href: '/admin/rooms', label: 'Cabins', icon: Home },
   { href: '/admin/bookings', label: 'Bookings', icon: Calendar },
   { href: '/admin/users', label: 'Users', icon: Users },
   { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },

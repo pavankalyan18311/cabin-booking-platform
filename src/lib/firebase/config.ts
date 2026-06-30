@@ -1,11 +1,6 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import {
-  getFirestore,
-  initializeFirestore,
-  persistentLocalCache,
-  persistentMultipleTabManager,
-} from 'firebase/firestore';
+import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 
 const firebaseConfig = {
@@ -20,28 +15,8 @@ const firebaseConfig = {
 
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 
-// Enable persistent offline cache so Firestore reads are served from
-// IndexedDB on repeat visits — dramatically faster initial data load.
-// Falls back to in-memory if persistence is unavailable (private browsing).
-function buildDb() {
-  if (typeof window === 'undefined') {
-    // SSR: IndexedDB not available — skip persistence entirely
-    return getFirestore(app);
-  }
-  try {
-    return initializeFirestore(app, {
-      localCache: persistentLocalCache({
-        tabManager: persistentMultipleTabManager(),
-      }),
-    });
-  } catch {
-    // Already initialized (HMR / module re-execution) — return existing instance
-    return getFirestore(app);
-  }
-}
-
 export const auth    = getAuth(app);
-export const db      = buildDb();
+export const db      = getFirestore(app);
 export const storage = getStorage(app);
 
 export default app;

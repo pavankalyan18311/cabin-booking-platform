@@ -132,7 +132,7 @@ function RoomCard({ room }: { room: Room }) {
     <motion.div
       whileHover={isMaintenance ? {} : { y: -4 }}
       transition={{ duration: 0.22, ease: 'easeOut' }}
-      className="group relative rounded-2xl overflow-hidden bg-stone-900 cursor-pointer shadow-md hover:shadow-xl transition-shadow duration-300"
+      className="group relative overflow-hidden bg-stone-900 cursor-pointer shadow-md hover:shadow-xl transition-shadow duration-300"
     >
       {/* ── Image (4:3, clean — no text overlay) ── */}
       <div className="relative w-full aspect-[4/3] overflow-hidden">
@@ -165,7 +165,7 @@ function RoomCard({ room }: { room: Room }) {
         {/* Maintenance overlay */}
         {isMaintenance && (
           <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-10">
-            <div className="bg-white/95 backdrop-blur-sm px-4 py-2.5 rounded-2xl flex items-center gap-2">
+            <div className="bg-white/95 backdrop-blur-sm px-4 py-2.5 flex items-center gap-2">
               <Wrench className="h-4 w-4 text-stone-600" />
               <span className="text-sm font-semibold text-stone-800">Temporarily Closed</span>
             </div>
@@ -175,10 +175,10 @@ function RoomCard({ room }: { room: Room }) {
         {/* Badges top-left */}
         <div className="absolute top-2.5 left-2.5 flex gap-1 z-10">
           {room.isFeatured && !isMaintenance && (
-            <span className="bg-amber-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow">Featured</span>
+            <span className="bg-amber-500 text-white text-[10px] font-bold px-2 py-0.5 shadow">Featured</span>
           )}
           {discountPct > 0 && !isMaintenance && (
-            <span className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow">-{discountPct}%</span>
+            <span className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 shadow">-{discountPct}%</span>
           )}
         </div>
 
@@ -189,7 +189,7 @@ function RoomCard({ room }: { room: Room }) {
               type="button"
               aria-label="View all photos"
               onClick={handleExpand}
-              className="p-2 rounded-xl bg-black/45 backdrop-blur-sm text-white hover:bg-black/65 transition-colors"
+              className="p-2 bg-black/45 backdrop-blur-sm text-white hover:bg-black/65 transition-colors"
             >
               <Maximize2 className="h-3.5 w-3.5" />
             </button>
@@ -198,7 +198,7 @@ function RoomCard({ room }: { room: Room }) {
             type="button"
             aria-label={isFav ? 'Remove from favorites' : 'Add to favorites'}
             onClick={handleFavorite}
-            className={`p-2 rounded-xl transition-all duration-200
+            className={`p-2 transition-all duration-200
               ${isFav
                 ? 'bg-red-500 text-white shadow-lg shadow-red-900/30'
                 : 'bg-black/45 backdrop-blur-sm text-white hover:bg-black/65'}`}
@@ -209,7 +209,7 @@ function RoomCard({ room }: { room: Room }) {
 
         {/* Photo count badge bottom-right */}
         {room.images.length > 1 && (
-          <div className="absolute bottom-2 right-2 z-10 bg-black/50 backdrop-blur-sm text-white text-[10px] font-semibold px-2 py-0.5 rounded-full">
+          <div className="absolute bottom-2 right-2 z-10 bg-black/50 backdrop-blur-sm text-white text-[10px] font-semibold px-2 py-0.5">
             {room.images.length} photos
           </div>
         )}
@@ -237,7 +237,7 @@ function RoomCard({ room }: { room: Room }) {
         <div className="flex items-end justify-between gap-2">
           <div className="flex items-center gap-2">
             <span className="flex items-center gap-0.5 text-white/45 text-xs">
-              <Users className="h-3 w-3" />{room.maxGuests}
+              <Users className="h-3 w-3" />Up to {room.maxGuests}
             </span>
             <span className="flex items-center gap-0.5 text-white/45 text-xs">
               <Bed className="h-3 w-3" />{room.bedrooms}

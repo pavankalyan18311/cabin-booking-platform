@@ -33,12 +33,22 @@ export interface Room {
   title: string;
   slug: string;
   description: string;
-  shortDescription: string;
   price: number;
   discountPrice?: number;
   maxGuests: number;
   bedrooms: number;
   bathrooms: number;
+  toilets?: number;
+  balconies?: number;
+  kitchens?: number;
+  diningRooms?: number;
+  livingRooms?: number;
+  queensizeBeds?: number;
+  sofaBeds?: number;
+  foldawayBeds?: number;
+  loftBeds?: number;
+  kingsizeBeds?: number;
+  terraces?: number;
   size?: number;
   location?: string;
   coordinates?: { lat: number; lng: number };
@@ -90,6 +100,8 @@ export interface Booking {
   paymentType?: PaymentType;
   depositAmount?: number;      // amount charged at booking time
   remainingBalance?: number;   // amount due at check-in (0 for full payments)
+  balancePaid?: boolean;       // true once the remaining balance was paid online
+  balancePaidAt?: string;
   couponCode?: string;
   discountAmount?: number;
 }

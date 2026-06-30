@@ -94,12 +94,30 @@ export async function POST(request: NextRequest) {
     }
 
     // ── Stripe refund when admin cancels a paid booking ───────────────────────
+    // Per policy, only the room amount is refundable — service fee and taxes
+    // are kept regardless of whether the guest paid in full or as a deposit.
     if (status === 'cancelled' && booking.paymentStatus === 'succeeded' && booking.paymentIntentId) {
       try {
-        await stripe.refunds.create({
-          payment_intent: booking.paymentIntentId as string,
-          reason: 'requested_by_customer',
-        });
+        const nightlyRate = booking.nightlyRate as number;
+        const nights = booking.nights as number;
+        const discountAmount = (booking.discountAmount as number) ?? 0;
+        const totalPrice = booking.totalPrice as number;
+        // depositAmount is what was actually charged at booking time (the full
+        // total for 'full' payments, or 50% of it for 'half' payments) — used
+        // to scale the refund down proportionally for half-paid bookings.
+        const chargedAmount = (booking.depositAmount as number | undefined) ?? totalPrice;
+
+        const roomSubtotal = Math.max(0, nightlyRate * nights - discountAmount);
+        const chargedRatio = totalPrice > 0 ? chargedAmount / totalPrice : 1;
+        const refundAmountCents = Math.round(roomSubtotal * chargedRatio * 100);
+
+        if (refundAmountCents > 0) {
+          await stripe.refunds.create({
+            payment_intent: booking.paymentIntentId as string,
+            amount: refundAmountCents,
+            reason: 'requested_by_customer',
+          });
+        }
         await bookingRef.update({ paymentStatus: 'refunded', updatedAt: new Date().toISOString() });
       } catch (refundErr) {
         console.error('[admin/booking/status] Stripe refund failed — flag for manual review:', refundErr);

@@ -10,11 +10,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Bell, Mail, Shield, Trash2, Loader2, Eye, EyeOff } from 'lucide-react';
+import { Bell, Mail, Shield, Loader2, Eye, EyeOff, User as UserIcon } from 'lucide-react';
 import { toast } from 'sonner';
-import { changeEmail, changePassword } from '@/services/auth.service';
+import { changeEmail, changePassword, updateUserProfile } from '@/services/auth.service';
 import { useAuthStore } from '@/store';
+import { toTitleCase } from '@/lib/utils';
 
+const displayNameSchema = z.object({
+  displayName: z.string().trim().min(2, 'Enter your full name'),
+});
 const changeEmailSchema = z.object({
   currentPassword: z.string().min(1, 'Current password is required'),
   newEmail: z.email('Enter a valid email address'),
@@ -25,6 +29,7 @@ const changePasswordSchema = z.object({
   confirmPassword: z.string(),
 }).refine((d) => d.newPassword === d.confirmPassword, { message: 'Passwords do not match', path: ['confirmPassword'] });
 
+type DisplayNameInput    = z.infer<typeof displayNameSchema>;
 type ChangeEmailInput    = z.infer<typeof changeEmailSchema>;
 type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
 
@@ -165,6 +170,50 @@ function ChangePasswordDialog({ open, onClose }: { open: boolean; onClose: () =>
   );
 }
 
+function ProfileSection() {
+  const { user, setUser } = useAuthStore();
+  const { register, handleSubmit, formState: { errors, isSubmitting, isDirty } } = useForm<DisplayNameInput>({
+    resolver: zodResolver(displayNameSchema),
+    defaultValues: { displayName: user?.displayName ?? '' },
+  });
+
+  const onSubmit = async (data: DisplayNameInput) => {
+    if (!user) return;
+    const formatted = toTitleCase(data.displayName);
+    try {
+      await updateUserProfile(user.uid, { displayName: formatted });
+      setUser({ ...user, displayName: formatted });
+      toast.success('Display name updated');
+    } catch {
+      toast.error('Failed to update display name.');
+    }
+  };
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+      <div className="dash-card rounded-2xl p-5">
+        <div className="flex items-center gap-2.5 mb-5">
+          <div className="p-2 bg-emerald-500/20 rounded-xl"><UserIcon className="h-4 w-4 text-emerald-400" /></div>
+          <div>
+            <p className="font-bold text-white text-sm">Profile</p>
+            <p className="text-xs text-white/35">How your name appears across the site.</p>
+          </div>
+        </div>
+        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col sm:flex-row gap-3 sm:items-start">
+          <div className="flex-1 space-y-1.5">
+            <Label className="text-white/60">Display Name</Label>
+            <Input placeholder="Your full name" {...register('displayName')} />
+            {errors.displayName && <p className="text-xs text-red-500">{errors.displayName.message}</p>}
+          </div>
+          <Button type="submit" variant="premium" className="sm:mt-6" disabled={isSubmitting || !isDirty}>
+            {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Save'}
+          </Button>
+        </form>
+      </div>
+    </motion.div>
+  );
+}
+
 export default function SettingsPage() {
   const [notifications, setNotifications] = useState({ email: true, bookingUpdates: true, marketing: false });
   const [emailDialogOpen, setEmailDialogOpen]       = useState(false);
@@ -176,6 +225,8 @@ export default function SettingsPage() {
         <h1 className="text-2xl font-black text-slate-900 dark:text-white">Account Settings</h1>
         <p className="text-slate-600 dark:text-white/60 mt-1 text-sm">Manage your preferences and account.</p>
       </motion.div>
+
+      <ProfileSection />
 
       {/* Notifications */}
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
@@ -235,23 +286,6 @@ export default function SettingsPage() {
               <Shield className="h-4 w-4 text-blue-400" /> Change Password
             </Button>
           </div>
-        </div>
-      </motion.div>
-
-      {/* Danger zone */}
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
-        <div className="dash-card-orange rounded-2xl p-5">
-          <div className="flex items-center gap-2.5 mb-4">
-            <div className="p-2 bg-red-500/20 rounded-xl"><Trash2 className="h-4 w-4 text-red-400" /></div>
-            <div>
-              <p className="font-bold text-red-300 text-sm">Danger Zone</p>
-              <p className="text-xs text-white/35">Irreversible actions — proceed with caution.</p>
-            </div>
-          </div>
-          <Button variant="destructive" className="gap-2 bg-red-500/20 border border-red-500/30 text-red-300 hover:bg-red-500/30 hover:text-red-200"
-            onClick={() => toast.error('Please contact support to delete your account')}>
-            <Trash2 className="h-4 w-4" /> Delete Account
-          </Button>
         </div>
       </motion.div>
 

@@ -19,9 +19,22 @@ import {
 } from '@/components/ui/dialog';
 import { getAllBookingsAdmin, updateBookingStatus, markBookingRefunded } from '@/services/bookings.service';
 import { formatCurrency, formatDate, getStatusColor } from '@/lib/utils';
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, startOfDay, endOfDay, subDays, subHours } from 'date-fns';
 import type { Booking, BookingStatus, PaymentStatus } from '@/types';
 import { toast } from 'sonner';
+
+type DatePreset = 'all' | 'today' | 'yesterday' | 'last24h' | 'custom';
+
+function getDateRange(preset: DatePreset, from: string, to: string): { from: Date; to: Date } | null {
+  const now = new Date();
+  if (preset === 'today')     return { from: startOfDay(now),          to: endOfDay(now) };
+  if (preset === 'yesterday') return { from: startOfDay(subDays(now, 1)), to: endOfDay(subDays(now, 1)) };
+  if (preset === 'last24h')   return { from: subHours(now, 24),        to: now };
+  if (preset === 'custom' && from && to) {
+    return { from: startOfDay(parseISO(from)), to: endOfDay(parseISO(to)) };
+  }
+  return null;
+}
 
 function paymentBadge(status: PaymentStatus | undefined, type: string | undefined): { label: string; className: string } | null {
   if (status === 'succeeded') {
@@ -102,6 +115,9 @@ export default function AdminBookingsPage() {
   const [search, setSearch]             = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | BookingStatus>('all');
   const [paymentFilter, setPaymentFilter] = useState<'all' | PaymentStatus>('all');
+  const [datePreset, setDatePreset]     = useState<DatePreset>('all');
+  const [customFrom, setCustomFrom]     = useState('');
+  const [customTo, setCustomTo]         = useState('');
   const [rejectId, setRejectId]         = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState('');
   const [rejecting, setRejecting]       = useState(false);
@@ -163,7 +179,7 @@ export default function AdminBookingsPage() {
     try {
       await updateBookingStatus(cancelId, 'cancelled', cancelReason.trim() || undefined);
       setBookings((prev) => prev.map((b) => b.id === cancelId ? { ...b, status: 'cancelled' as BookingStatus, paymentStatus: b.paymentStatus === 'succeeded' ? 'refunded' as PaymentStatus : b.paymentStatus } : b));
-      toast.success('Booking cancelled and refund issued');
+      toast.success('Booking cancelled — room amount refunded (fees & taxes withheld)');
       setCancelId(null);
       setCancelReason('');
     } catch {
@@ -186,6 +202,8 @@ export default function AdminBookingsPage() {
     }
   };
 
+  const dateRange = getDateRange(datePreset, customFrom, customTo);
+
   const filtered = bookings.filter((b) => {
     const q = search.toLowerCase();
     const matchesSearch = !q ||
@@ -197,7 +215,14 @@ export default function AdminBookingsPage() {
       (b.couponCode ?? '').toLowerCase().includes(q);
     const matchesStatus  = statusFilter  === 'all' || b.status        === statusFilter;
     const matchesPayment = paymentFilter === 'all' || b.paymentStatus === paymentFilter;
-    return matchesSearch && matchesStatus && matchesPayment;
+    let matchesDate = true;
+    if (dateRange) {
+      try {
+        const bookedAt = parseISO(b.createdAt);
+        matchesDate = bookedAt >= dateRange.from && bookedAt <= dateRange.to;
+      } catch { matchesDate = true; }
+    }
+    return matchesSearch && matchesStatus && matchesPayment && matchesDate;
   });
 
   const totalRevenue   = bookings.filter((b) => b.paymentStatus === 'succeeded').reduce((s, b) => s + b.totalPrice, 0);
@@ -243,7 +268,6 @@ export default function AdminBookingsPage() {
               <SelectItem value="confirmed">Confirmed</SelectItem>
               <SelectItem value="completed">Completed</SelectItem>
               <SelectItem value="cancelled">Cancelled</SelectItem>
-              <SelectItem value="rejected">Rejected</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -267,6 +291,51 @@ export default function AdminBookingsPage() {
         </div>
       </div>
 
+      {/* ── Date filters ── */}
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wide mr-1">Filter by date</span>
+        {(['all', 'today', 'yesterday', 'last24h', 'custom'] as DatePreset[]).map((preset) => {
+          const labels: Record<DatePreset, string> = {
+            all: 'All Time', today: 'Today', yesterday: 'Yesterday', last24h: 'Last 24 Hours', custom: 'Custom Range',
+          };
+          const active = datePreset === preset;
+          return (
+            <button
+              key={preset}
+              type="button"
+              onClick={() => setDatePreset(preset)}
+              className={`h-8 px-3 rounded-lg text-xs font-semibold border transition-all ${
+                active
+                  ? 'bg-amber-500 text-white border-amber-500 shadow-sm'
+                  : 'bg-white text-stone-600 border-stone-200 hover:border-amber-300 hover:text-amber-700'
+              }`}
+            >
+              {labels[preset]}
+            </button>
+          );
+        })}
+        {datePreset === 'custom' && (
+          <div className="flex items-center gap-2 ml-1">
+            <input
+              type="date"
+              title="From date"
+              value={customFrom}
+              onChange={(e) => setCustomFrom(e.target.value)}
+              className="h-8 px-2 rounded-lg border border-stone-200 text-xs text-stone-700 bg-white focus:outline-none focus:ring-1 focus:ring-amber-400"
+            />
+            <span className="text-stone-400 text-xs">→</span>
+            <input
+              type="date"
+              title="To date"
+              value={customTo}
+              min={customFrom || undefined}
+              onChange={(e) => setCustomTo(e.target.value)}
+              className="h-8 px-2 rounded-lg border border-stone-200 text-xs text-stone-700 bg-white focus:outline-none focus:ring-1 focus:ring-amber-400"
+            />
+          </div>
+        )}
+      </div>
+
       {/* ── List ── */}
       {loading ? (
         <div className="space-y-3">
@@ -284,6 +353,10 @@ export default function AdminBookingsPage() {
             const canRefund = b.paymentStatus === 'succeeded' && (b.status === 'cancelled' || b.status === 'rejected');
             const bookedAt  = formatBookedAt(b.createdAt);
             const guestName = b.userName || b.userEmail?.split('@')[0] || 'Guest';
+            const charged   = b.totalPrice - (b.remainingBalance ?? 0);
+            const showPaymentBreakdown = b.status === 'cancelled'
+              && (b.paymentStatus === 'succeeded' || b.paymentStatus === 'refunded');
+            const hasWaivedBalance = b.paymentType === 'half' && (b.remainingBalance ?? 0) > 0;
 
             return (
               <motion.div
@@ -314,10 +387,11 @@ export default function AdminBookingsPage() {
                           {payBadge.label}
                         </Badge>
                       )}
-                      {b.paymentType === 'half' && b.remainingBalance != null && b.remainingBalance > 0 && (
+                      {b.paymentType === 'half' && b.remainingBalance != null && b.remainingBalance > 0
+                        && (b.status === 'pending' || b.status === 'confirmed') && (
                         <span className="inline-flex items-center gap-1 bg-amber-50 text-amber-700 border border-amber-200 rounded-full text-xs px-2 py-0.5">
                           <DollarSign className="h-2.5 w-2.5 shrink-0" />
-                          {formatCurrency(b.remainingBalance)} due at check-in
+                          {formatCurrency(b.remainingBalance)} balance due
                         </span>
                       )}
                       {b.couponCode && (
@@ -445,6 +519,41 @@ export default function AdminBookingsPage() {
                     </div>
                   )}
 
+                  {/* ── Payment breakdown for cancelled bookings ── */}
+                  {showPaymentBreakdown && (
+                    <div className="mx-5 mb-3 rounded-xl border border-stone-100 overflow-hidden">
+                      <div className="px-4 py-2 bg-stone-50 border-b border-stone-100 flex items-center gap-1.5">
+                        <DollarSign className="h-3 w-3 text-stone-400" />
+                        <p className="text-[10px] font-bold text-stone-400 uppercase tracking-wide">Payment Breakdown</p>
+                      </div>
+                      <div className={`grid ${hasWaivedBalance ? 'grid-cols-3' : 'grid-cols-2'} divide-x divide-stone-100 bg-white`}>
+                        <div className="px-3 py-3 text-center">
+                          <p className="text-[10px] text-stone-400 mb-1.5">Charged</p>
+                          <p className="text-sm font-bold text-stone-800">{formatCurrency(charged)}</p>
+                          <p className="text-[10px] text-stone-400 mt-0.5">{b.paymentType === 'half' ? '50% upfront' : 'Full amount'}</p>
+                        </div>
+                        <div className="px-3 py-3 text-center">
+                          <p className="text-[10px] text-stone-400 mb-1.5">
+                            {b.paymentStatus === 'refunded' ? 'Refunded' : 'Refund due'}
+                          </p>
+                          <p className={`text-sm font-bold ${b.paymentStatus === 'refunded' ? 'text-sky-600' : 'text-amber-600'}`}>
+                            {formatCurrency(charged)}
+                          </p>
+                          <p className="text-[10px] text-stone-400 mt-0.5">
+                            {b.paymentStatus === 'refunded' ? 'Processed ✓' : 'Action needed'}
+                          </p>
+                        </div>
+                        {hasWaivedBalance && (
+                          <div className="px-3 py-3 text-center">
+                            <p className="text-[10px] text-stone-400 mb-1.5">Never billed</p>
+                            <p className="text-sm font-bold text-stone-400">{formatCurrency(b.remainingBalance ?? 0)}</p>
+                            <p className="text-[10px] text-stone-400 mt-0.5">Balance waived</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
                   {/* ── Actions ── */}
                   <div className="flex items-center gap-2 px-5 py-3 border-t border-stone-100 bg-white flex-wrap">
                     {b.status === 'pending' && (
@@ -564,7 +673,8 @@ export default function AdminBookingsPage() {
           <DialogHeader>
             <DialogTitle>Cancel Booking</DialogTitle>
             <DialogDescription>
-              The booking dates will be freed and any Stripe payment will be automatically refunded to the guest.
+              The booking dates will be freed. Only the room amount will be refunded to the guest via Stripe —
+              service fees and taxes are non-refundable per policy.
             </DialogDescription>
           </DialogHeader>
           <Textarea

@@ -4,9 +4,10 @@ import { createPortal } from 'react-dom';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import {
-  Users, Bed, Bath, Star, Share2, ChevronLeft, ChevronRight, Maximize2, X,
+  Star, Share2, ChevronLeft, ChevronRight, Maximize2, X,
   Wifi, Flame, Droplets, TreePine, Dog, ChefHat, Car, Mountain, Check, Loader2, ArrowLeft,
-  Tv, Coffee, Wind, Home, Thermometer, WashingMachine, UtensilsCrossed, Shirt, Hotel,
+  Tv, Coffee, Wind, Home, Thermometer, WashingMachine, UtensilsCrossed, Shirt, Bath,
+  CalendarClock, Ban, ShieldOff,
 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -244,19 +245,39 @@ export default function RoomDetailClient({ room, bookedDates, reviews }: Props) 
           {/* ── Left: Details ── */}
           <div className="lg:col-span-2 space-y-8">
 
-            {/* Quick stats */}
-            <div className="grid grid-cols-3 gap-3">
-              {[
-                { icon: Users, label: 'Guests',    value: room.maxGuests },
-                { icon: Bed,   label: 'Bedrooms',  value: room.bedrooms },
-                { icon: Bath,  label: 'Bathrooms', value: room.bathrooms },
-              ].map((s) => (
-                <div key={s.label} className="text-center p-4 bg-[#132E1C] border border-[#1F4A2D] rounded-2xl">
-                  <s.icon className="h-5 w-5 text-amber-500 mx-auto mb-2" />
-                  <div className="text-xl font-black text-white">{s.value}</div>
-                  <div className="text-xs text-stone-500 mt-0.5">{s.label}</div>
-                </div>
-              ))}
+            {/* Room feature chips */}
+            <div className="flex flex-wrap gap-2">
+              {(
+                [
+                  { n: room.maxGuests,    s: 'Guest',         p: 'Guests',         prefix: 'Up to ' },
+                  { n: room.bedrooms,     s: 'Bedroom',       p: 'Bedrooms'        },
+                  { n: room.bathrooms,    s: 'Bathroom',      p: 'Bathrooms'       },
+                  { n: room.toilets,      s: 'Toilet',        p: 'Toilets'         },
+                  { n: room.balconies,    s: 'Balcony',       p: 'Balconies'       },
+                  { n: room.kitchens,     s: 'Kitchen',       p: 'Kitchens'        },
+                  { n: room.diningRooms,  s: 'Dining Room',   p: 'Dining Rooms'    },
+                  { n: room.livingRooms,  s: 'Living Room',   p: 'Living Rooms'    },
+                  { n: room.queensizeBeds,s: 'Queen-size bed', p: 'Queen-size beds' },
+                  { n: room.sofaBeds,     s: 'Sofa bed',      p: 'Sofa beds'       },
+                  { n: room.foldawayBeds, s: 'Fold-away bed', p: 'Fold-away beds'  },
+                  { n: room.loftBeds,     s: 'Loft bed',      p: 'Loft beds'       },
+                  { n: room.kingsizeBeds, s: 'King-size bed', p: 'King-size beds'  },
+                  { n: room.terraces,     s: 'Terrace',       p: 'Terraces'        },
+                ] as { n: number | undefined; s: string; p: string; prefix?: string }[]
+              )
+                .filter((c) => c.n != null && c.n > 0)
+                .map(({ n, s, p, prefix }) => (
+                  <span key={s}
+                    className="inline-flex items-center px-3 py-1.5 bg-[#132E1C] border border-[#1F4A2D]
+                      rounded-xl text-sm font-medium text-stone-300 whitespace-nowrap">
+                    {prefix}{n} {n === 1 ? s : p}
+                  </span>
+                ))}
+              {/* Pet Friendly — applies to all cabins */}
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#132E1C] border border-[#1F4A2D]
+                rounded-xl text-sm font-medium text-stone-300 whitespace-nowrap">
+                🐾 Pet Friendly
+              </span>
             </div>
 
             <Separator className="bg-stone-800" />
@@ -345,6 +366,46 @@ export default function RoomDetailClient({ room, bookedDates, reviews }: Props) 
                     <a href="/login" className="text-amber-400 font-semibold hover:underline">Sign in</a> to leave a review.
                   </p>
                 )}
+              </div>
+            </div>
+            <Separator className="bg-stone-800" />
+
+            {/* Booking Policies */}
+            <div>
+              <h2 className="text-xl font-bold text-white mb-5">Booking Policies</h2>
+              <div className="space-y-4">
+                {/* Payment Schedule */}
+                <div className="flex gap-4 bg-[#132E1C] border border-[#1F4A2D] rounded-2xl p-4">
+                  <div className="shrink-0 p-2.5 bg-amber-500/15 border border-amber-500/25 rounded-xl h-fit">
+                    <CalendarClock className="h-4 w-4 text-amber-400" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-white text-sm mb-1">Payment Schedule</p>
+                    <p className="text-stone-400 text-sm">50% of the total amount is due at time of reservation.</p>
+                    <p className="text-stone-400 text-sm mt-0.5">The remaining balance is due <span className="text-amber-400 font-medium">1 day before arrival</span>.</p>
+                  </div>
+                </div>
+                {/* Cancellation */}
+                <div className="flex gap-4 bg-[#132E1C] border border-[#1F4A2D] rounded-2xl p-4">
+                  <div className="shrink-0 p-2.5 bg-red-500/15 border border-red-500/25 rounded-xl h-fit">
+                    <Ban className="h-4 w-4 text-red-400" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-white text-sm mb-1">Cancellation Policy</p>
+                    <p className="text-stone-400 text-sm">All paid prepayments are <span className="text-red-400 font-medium">non-refundable</span>.</p>
+                    <p className="text-stone-400 text-sm mt-0.5">Please review your dates carefully before confirming.</p>
+                  </div>
+                </div>
+                {/* Security deposit */}
+                <div className="flex gap-4 bg-[#132E1C] border border-[#1F4A2D] rounded-2xl p-4">
+                  <div className="shrink-0 p-2.5 bg-emerald-500/15 border border-emerald-500/25 rounded-xl h-fit">
+                    <ShieldOff className="h-4 w-4 text-emerald-400" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-white text-sm mb-1">Security Deposit</p>
+                    <p className="text-stone-400 text-sm"><span className="text-emerald-400 font-medium">No security deposit</span> is required.</p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

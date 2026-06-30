@@ -17,12 +17,43 @@ import { RoomImageUpload } from '@/components/admin/RoomImageUpload';
 import Link from 'next/link';
 import { toast } from 'sonner';
 
-const AMENITIES_LIST = [
-  'WiFi', 'Fireplace', 'Kitchen', 'Dishwasher', 'Air Conditioning', 'Heating', 'Ceiling Fans',
-  'Fire Pit', 'BBQ Grill', 'Parking', 'Porch', 'Screened Porch', 'Balcony', 'Terrace',
-  'Hot Tub', 'Whirlpool Tub', 'Bathtub', 'Washer/Dryer', 'Iron',
-  'TV / Satellite TV', 'Coffee Maker', 'Pet Friendly',
-  'Pool', 'Mountain View', 'Lakefront', 'Game Room', 'Kayaks', 'Fishing Access',
+const AMENITIES_GROUPS = [
+  {
+    label: 'Bathroom & Laundry',
+    items: ['Bed Linen', 'Blow Dryer', 'Shower', 'Towel Set', 'Bathtub', 'Whirlpool Tub', 'Washer/Dryer', 'Iron'],
+  },
+  {
+    label: 'Heating & Cooling',
+    items: ['Air Conditioning', 'Central Heating', 'Fireplace', 'Ceiling Fans'],
+  },
+  {
+    label: 'Kitchen & Dining',
+    items: ['Blender', 'Coffee Maker', 'Cooking Utensils', 'Dishwasher', 'Grill', 'Kitchen Stove', 'Microwave', 'Oven', 'Refrigerator', 'Toaster'],
+  },
+  {
+    label: 'Entertainment',
+    items: ['TV / Satellite TV', 'DVD Player', 'Game Room'],
+  },
+  {
+    label: 'Internet & Office',
+    items: ['WiFi', 'Broadband Internet', 'Telephone'],
+  },
+  {
+    label: 'Home Safety',
+    items: ['Fire Extinguisher'],
+  },
+  {
+    label: 'Outdoor & Recreation',
+    items: ['Fire Pit', 'BBQ Grill', 'Parking', 'Porch', 'Screened Porch', 'Balcony', 'Terrace', 'Hot Tub', 'Pool', 'Kayaks', 'Fishing Access'],
+  },
+  {
+    label: 'Views & Location',
+    items: ['Mountain View', 'Lakefront'],
+  },
+  {
+    label: 'Other',
+    items: ['Pet Friendly'],
+  },
 ];
 
 export default function NewRoomPage() {
@@ -60,7 +91,7 @@ export default function NewRoomPage() {
           <Button variant="ghost" size="icon"><ArrowLeft className="h-4 w-4" /></Button>
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-stone-900">Add New Room</h1>
+          <h1 className="text-2xl font-bold text-stone-900">Add New Cabin</h1>
           <p className="text-stone-500 text-sm">Create a new property listing.</p>
         </div>
       </div>
@@ -77,13 +108,7 @@ export default function NewRoomPage() {
             </div>
 
             <div className="space-y-1.5">
-              <Label>Short Description *</Label>
-              <Input placeholder="A brief tagline for the listing" {...register('shortDescription')} />
-              {errors.shortDescription && <p className="text-xs text-red-500">{errors.shortDescription.message}</p>}
-            </div>
-
-            <div className="space-y-1.5">
-              <Label>Full Description *</Label>
+              <Label>Description *</Label>
               <Textarea placeholder="Detailed description of the property..." rows={5} {...register('description')} />
               {errors.description && <p className="text-xs text-red-500">{errors.description.message}</p>}
             </div>
@@ -117,6 +142,31 @@ export default function NewRoomPage() {
                 <Label>{f.label}</Label>
                 <Input type="number" min={1} {...register(f.field, { valueAsNumber: true })} />
                 {errors[f.field] && <p className="text-xs text-red-500">{errors[f.field]?.message}</p>}
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
+        {/* Room Details */}
+        <Card>
+          <CardHeader><CardTitle className="text-base">Room Details <span className="text-stone-400 font-normal text-xs">(optional counts shown as chips on room page)</span></CardTitle></CardHeader>
+          <CardContent className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            {[
+              { label: 'Toilets',         field: 'toilets'       as const },
+              { label: 'Balconies',       field: 'balconies'     as const },
+              { label: 'Kitchens',        field: 'kitchens'      as const },
+              { label: 'Dining Rooms',    field: 'diningRooms'   as const },
+              { label: 'Living Rooms',    field: 'livingRooms'   as const },
+              { label: 'Queen-size Beds', field: 'queensizeBeds' as const },
+              { label: 'Sofa Beds',       field: 'sofaBeds'      as const },
+              { label: 'Fold-away Beds',  field: 'foldawayBeds'  as const },
+              { label: 'Loft Beds',       field: 'loftBeds'      as const },
+              { label: 'King-size Beds',  field: 'kingsizeBeds'  as const },
+              { label: 'Terraces',        field: 'terraces'      as const },
+            ].map((f) => (
+              <div key={f.field} className="space-y-1.5">
+                <Label className="text-xs">{f.label}</Label>
+                <Input type="number" min={1} placeholder="—" {...register(f.field, { valueAsNumber: true })} />
               </div>
             ))}
           </CardContent>
@@ -162,18 +212,25 @@ export default function NewRoomPage() {
           <CardHeader><CardTitle className="text-base">Amenities *</CardTitle></CardHeader>
           <CardContent>
             <Controller name="amenities" control={control} render={({ field }) => (
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {AMENITIES_LIST.map((amenity) => (
-                  <label key={amenity} className="flex items-center gap-2 cursor-pointer">
-                    <Checkbox
-                      checked={field.value.includes(amenity)}
-                      onCheckedChange={(checked) => {
-                        if (checked) field.onChange([...field.value, amenity]);
-                        else field.onChange(field.value.filter((a) => a !== amenity));
-                      }}
-                    />
-                    <span className="text-sm text-stone-700">{amenity}</span>
-                  </label>
+              <div className="space-y-4">
+                {AMENITIES_GROUPS.map((group) => (
+                  <div key={group.label}>
+                    <p className="text-xs font-semibold text-stone-500 uppercase tracking-wide mb-2">{group.label}</p>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {group.items.map((amenity) => (
+                        <label key={amenity} className="flex items-center gap-2 cursor-pointer">
+                          <Checkbox
+                            checked={field.value.includes(amenity)}
+                            onCheckedChange={(checked) => {
+                              if (checked) field.onChange([...field.value, amenity]);
+                              else field.onChange(field.value.filter((a) => a !== amenity));
+                            }}
+                          />
+                          <span className="text-sm text-stone-700">{amenity}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
                 ))}
               </div>
             )} />

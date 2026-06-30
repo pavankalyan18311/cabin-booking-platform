@@ -8,6 +8,7 @@
   --background: #ffffff;
   --foreground: #1c1917;
   --font-inter: 'Inter', sans-serif;
+  --font-display: 'Fraunces', serif;
 }
 
 .dark {
@@ -19,6 +20,7 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-inter);
+  --font-display: var(--font-display);
 }
 
 * {
@@ -27,6 +29,11 @@
 
 html {
   scroll-behavior: smooth;
+}
+
+/* Offset anchor targets so the fixed navbar doesn't cover the section heading */
+[id] {
+  scroll-margin-top: 5rem;
 }
 
 body {
