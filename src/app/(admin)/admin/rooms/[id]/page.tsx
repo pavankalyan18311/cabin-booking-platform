@@ -31,7 +31,7 @@ const AMENITIES_GROUPS = [
   },
   {
     label: 'Kitchen & Dining',
-    items: ['Blender', 'Coffee Maker', 'Cooking Utensils', 'Dishwasher', 'Grill', 'Kitchen Stove', 'Microwave', 'Oven', 'Refrigerator', 'Toaster'],
+    items: ['Blender', 'Coffee Maker', 'Cooking Utensils', 'Dishwasher', 'Gas Stove', 'Grill', 'Kitchen Stove', 'Microwave', 'Oven', 'Refrigerator', 'Toaster'],
   },
   {
     label: 'Entertainment',
